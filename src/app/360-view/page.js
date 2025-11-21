@@ -2,65 +2,43 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import PANOLENS from "panolens";
 
 export default function Panorama360() {
   const viewerRef = useRef(null);
 
   useEffect(() => {
-    if (!viewerRef.current) return;
+    let viewer;
+    let PANOLENS;
 
-    const panoramaImage = "/blogsimage.png"; // <-- Add your 360 image here
+    async function loadPanorama() {
+      // Dynamically import ONLY on client
+      const module = await import("panolens");
+      PANOLENS = module;
 
-    // Create Panorama
-    const panorama = new PANOLENS.ImagePanorama(panoramaImage);
+      const panorama = new PANOLENS.ImagePanorama("/blogsimage.png");
 
-    // Create Viewer
-    const viewer = new PANOLENS.Viewer({
-      container: viewerRef.current,
-      autoRotate: false,
-      autoRotateSpeed: 0.3,
-      controlBar: true,
-      output: "console",
-      cameraFov: 60,
-      enableReticle: true,
-      dwellTime: 1500, // Hover time for VR selection
-    });
+      viewer = new PANOLENS.Viewer({
+        container: viewerRef.current,
+        autoRotate: false,
+        cameraFov: 60,
+      });
 
-    viewer.add(panorama);
+      viewer.add(panorama);
+    }
 
-    // Add Hotspot Example
-    const hotspot = new PANOLENS.Infospot(350, PANOLENS.DataImage.Info);
-    hotspot.position.set(1000, -200, 200);
-    hotspot.addHoverText("Living Room");
-    hotspot.addEventListener("click", () => {
-      alert("Opening Living Room Details...");
-    });
-    panorama.add(hotspot);
+    // Run only on client
+    if (typeof window !== "undefined") {
+      loadPanorama();
+    }
 
-    return () => viewer.dispose();
+    return () => {
+      if (viewer) viewer.dispose();
+    };
   }, []);
 
   return (
-    <div className="relative w-full h-screen bg-black">
-      {/* 360 Viewer */}
+    <div className="w-full h-screen bg-black">
       <div ref={viewerRef} className="w-full h-full" />
-
-      {/* Modern UI Overlay */}
-      <div className="absolute top-5 left-5 z-50 flex gap-3">
-        <button className="px-4 py-2 bg-white/20 backdrop-blur-md text-white rounded-xl hover:bg-white/30 transition">
-          Back
-        </button>
-
-        <button className="px-4 py-2 bg-white/20 backdrop-blur-md text-white rounded-xl hover:bg-white/30 transition">
-          VR Mode
-        </button>
-      </div>
-
-      {/* Bottom Info Bar */}
-      <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-black/70 to-transparent text-white text-lg">
-        Explore the 360° Real Estate View
-      </div>
     </div>
   );
 }
