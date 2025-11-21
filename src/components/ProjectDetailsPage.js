@@ -73,10 +73,10 @@ export default function ProjectDetailsPage() {
   ];
 
   const floorPlans = [
-    { type: 'Studio', area: '718 Sq.Ft', image: '/floor-plan1.jpg' },
-    { type: '1 BHK', area: '850 Sq.Ft', image: '/floor-plan2.jpg' },
-    { type: '2 BHK', area: '1150 Sq.Ft', image: '/floor-plan3.jpg' },
-    { type: '3 BHK', area: '1357 Sq.Ft', image: '/floor-plan4.jpg' }
+    { type: 'Studio', area: '718 Sq.Ft', image: '/floorplan.webp' },
+    { type: '1 BHK', area: '850 Sq.Ft', image: '/floorplan.webp' },
+    { type: '2 BHK', area: '1150 Sq.Ft', image: '/floorplan.webp' },
+    { type: '3 BHK', area: '1357 Sq.Ft', image: '/floorplan.webp' }
   ];
 
   const constructionUpdates = [
@@ -473,28 +473,30 @@ const connectivity = [
   </div>
 
   {/* Features Section */}
-  <div className="grid md:grid-cols-4 gap-10 pt-6">
-    
-    {[
-      { img: "/riverwood1.png", label: "DELIVERING ONLY<br/>THE BEST" },
-      { img: "/riverwood2.png", label: "AFFORDABLE<br/>HOMES" },
-      { img: "/riverwood3.png", label: "TOP CLASS<br/>AMENITIES" },
-      { img: "/riverwood4.png", label: "ECO-FRIENDLY<br/>PROJECTS" }
-    ].map((feat, index) => (
-      <div
-        key={index}
-        className="flex flex-col items-center text-center space-y-4 
-        hover:scale-110 transition-transform duration-300 group"
-      >
-        <img src={feat.img} className="w-20 group-hover:drop-shadow-xl transition" />
-        <p
-          className="font-semibold text-black text-sm leading-tight"
-          dangerouslySetInnerHTML={{ __html: feat.label }}
-        />
-      </div>
-    ))}
+ <div className="grid md:grid-cols-4 gap-10 pt-6">
+  {[
+    { img: "/interior1.webp", label: "DELIVERING ONLY<br/>THE BEST" },
+    { img: "/interior2.webp", label: "AFFORDABLE<br/>HOMES" },
+    { img: "/interior3.webp", label: "TOP CLASS<br/>AMENITIES" },
+    { img: "/interior4.webp", label: "ECO-FRIENDLY<br/>PROJECTS" }
+  ].map((feat, index) => (
+    <div
+      key={index}
+      className="flex flex-col items-center text-center space-y-4 
+      hover:scale-110 transition-transform duration-300 group"
+    >
+      <img
+        src={feat.img}
+        className="w-80 h-80 object-contain group-hover:drop-shadow-xl transition"
+      />
+      <p
+        className="font-semibold text-black text-sm leading-tight"
+        dangerouslySetInnerHTML={{ __html: feat.label }}
+      />
+    </div>
+  ))}
+</div>
 
-  </div>
 
 </div>
 
@@ -502,55 +504,44 @@ const connectivity = [
 
           {/* Why AIRA Tab */}
           {activeTab === 'why' && (
-            <div className="space-y-12">
-              <div className="text-center">
-                <h2 className="text-4xl font-bold text-gray-900 mb-6">Why Choose AIRA AVENUE?</h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                  Discover the unique advantages that make AIRA AVENUE the perfect choice for your dream home
-                </p>
-              </div>
+<div className="space-y-16 py-20 bg-gradient-to-b from-gray-50 to-white">
+  <div className="text-center space-y-6">
+    <h2 className="text-5xl font-extrabold text-gray-900 tracking-tight">
+      Why Choose <span className="text-yellow-600">AIRA AVENUE?</span>
+    </h2>
+    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      Discover what makes AIRA AVENUE your perfect investment for a premium lifestyle
+    </p>
+  </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[
-                  {
-                    title: 'Prime Location',
-                    description: 'Strategic location on GST Road with excellent connectivity to all major hubs',
-                    icon: <MapPin className="w-8 h-8" />
-                  },
-                  {
-                    title: 'Quality Construction',
-                    description: 'Built with premium materials and superior construction techniques',
-                    icon: <Building2 className="w-8 h-8" />
-                  },
-                  {
-                    title: 'Modern Amenities',
-                    description: 'State-of-the-art facilities for comfortable and luxurious living',
-                    icon: <Home className="w-8 h-8" />
-                  },
-                  {
-                    title: 'Rental Assurance',
-                    description: 'Guaranteed rental returns for 3 years with full furnishings',
-                    icon: <Calendar className="w-8 h-8" />
-                  },
-                  {
-                    title: 'Ready to Move',
-                    description: 'Immediate possession available for quick settlement',
-                    icon: <CheckCircle2 className="w-8 h-8" />
-                  },
-                  {
-                    title: 'Value Appreciation',
-                    description: 'High potential for property value growth in developing area',
-                    icon: <TrendingUp className="w-8 h-8" />
-                  }
-                ].map((feature, index) => (
-                  <div key={index} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                    <div className="text-yellow-600 mb-4">{feature.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {[
+      { title: 'Prime Location', desc: 'Strategic location on GST Road with excellent connectivity', icon: <MapPin className="w-10 h-10" /> },
+      { title: 'Quality Construction', desc: 'Premium materials & advanced building practices for durability', icon: <Building2 className="w-10 h-10" /> },
+      { title: 'Modern Amenities', desc: 'State-of-the-art facilities for luxury and convenience', icon: <Home className="w-10 h-10" /> },
+      { title: 'Rental Assurance', desc: 'Guaranteed rental returns for 3 years fully furnished', icon: <Calendar className="w-10 h-10" /> },
+      { title: 'Ready to Move', desc: 'Immediate possession with fast paperwork assistance', icon: <CheckCircle2 className="w-10 h-10" /> },
+      { title: 'Value Appreciation', desc: 'Strong growth potential in a rising prime location', icon: <TrendingUp className="w-10 h-10" /> }
+    ].map((feature, index) => (
+      <div
+        key={index}
+        className="group bg-white/70 backdrop-blur-md border border-gray-200/50 p-8 rounded-3xl 
+        transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:bg-white"
+      >
+        <div className="text-yellow-600 mb-6 group-hover:scale-110 transition-transform">
+          {feature.icon}
+        </div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">
+          {feature.title}
+        </h3>
+        <p className="text-gray-600 leading-relaxed">
+          {feature.desc}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>
+
           )}
 
           {/* Location Highlights Tab */}
@@ -730,7 +721,7 @@ const connectivity = [
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {['/amenity1.jpg', '/amenity2.jpg', '/amenity3.jpg', '/amenity4.jpg'].map((image, index) => (
+                {['/amt1.jpg', '/amt2.jpg', '/amt3.jpg', '/amt1.jpg'].map((image, index) => (
                   <div key={index} className="relative h-64 rounded-2xl overflow-hidden">
                     <img
                       src={image}

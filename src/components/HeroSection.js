@@ -17,7 +17,7 @@ export default function HeroSection() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const slides = [
-    {
+    { 
       id: 1,
       image: '/Rash.jpg',
       title: '40+',

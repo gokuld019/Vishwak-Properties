@@ -26,10 +26,6 @@ const navigationLinks = [
             { name: 'Vijay Ganapathy Nagar – Mannivakkam', href: '/projects/ongoing/plots/golden-plains' },
             { name: 'Sri Mangal Avenue – Chengalpattu', href: '/projects/ongoing/plots/silver-oak' },
             { name: 'Varsa Garden – Padur, OMR', href: '/projects/ongoing/plots/elite-avenue', tag: 'Limited Units' },
-            { name: 'VK Aurora – Kelambakkam', href: '/projects/ongoing/plots/elite-avenue', tag: 'Limited Units' },
-            { name: 'ALA Garden – Vandalur', href: '/projects/ongoing/plots/elite-avenue', tag: 'Limited Units' },
-            { name: 'Kumaran Nagar – Urapakkam', href: '/projects/ongoing/plots/elite-avenue', tag: 'Limited Units' },
-            { name: 'Sri Kuberan Nagar – Ponmar', href: '/projects/ongoing/plots/elite-avenue', tag: 'Limited Units' },
           ]
         },
         {
@@ -38,16 +34,46 @@ const navigationLinks = [
             { name: 'Mahaa Ganapathy Avenue – Villas @ Kandigai', href: '/projects/ongoing/villas/luxury-gardens', tag: 'Premium' },
             { name: 'Vijay Ganapathy Nagar – 1 BHK & 2 BHK Villas @ Mannivakkam', href: '/projects/ongoing/villas/dream-retreat', tag: 'New Launch' },
             { name: 'Sri Mangal Avenue – 1 BHK & 2 BHK Villas @ Chengalpattu', href: '/projects/ongoing/villas/serenity' },
-            { name: 'Kumaran Nagar – 2 BHK VILLAS at Urapakkam', href: '/projects/ongoing/villas/grand-vista', tag: 'Selling Fast' },
+            { name: 'Kumaran Nagar – 2 BHK Villas @ Urapakkam', href: '/projects/ongoing/villas/grand-vista', tag: 'Selling Fast' },
           ]
         }
       ]
     }
   },
+
+  /* 🟩 NEW — COMPLETED PROJECTS WITH MEGA MENU */
   {
     name: 'COMPLETED PROJECTS',
     href: '/projects/completed',
+    megaMenu: {
+      categories: [
+        {
+          title: 'PLOTS',
+          items: [
+            { name: 'Sameera Grand City – East Tambaram', href: '/projects/completed/plots/green-meadows' },
+            { name: 'Kumaran Nagar – Vandalur', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Anna Nagar – Vandalur', href: '/projects/completed/plots/aaditya-nagar', tag: 'Sold Out' },
+
+            { name: 'Thirumal Nagar – East Tambaram', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Vasantham Nagar – Tambaram', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Gowtham Kiran Avenue – Maraimalai Nagar', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Sakthi Sai Nagar – Urapakkam', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Supreme City – Kayarambedu, Guduvanchery', href: '/projects/completed/plots/sundaram-enclave' },
+            { name: 'Akshaya Avenue – Oragadam', href: '/projects/completed/plots/sundaram-enclave' },
+
+          ]
+        },
+        {
+          title: 'VILLAS',
+          items: [
+            { name: 'Sameera Grand City -Villas @ East Tambaram', href: '/projects/completed/villas/elite-homes', tag: 'Premium' },
+           
+          ]
+        }
+      ]
+    }
   },
+
   {
     name: 'EMI CALCULATOR',
     href: '/emi-calculator',
@@ -61,6 +87,7 @@ const navigationLinks = [
     href: '/contactus',
   },
 ];
+
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(null);
@@ -90,17 +117,18 @@ export default function Header() {
         </div>
       )}
 
-      {/* Navigation Menu */}
-      <nav className={`transition-all duration-300 ${
-        isScrolled ? 'py-2' : 'py-4'
-      }`}>
+   {/* Navigation Menu */}
+<nav className={`transition-all duration-300 ${
+  isScrolled ? '' : 'py-4'
+}`}>
+
 <div className={`max-w-[80%] mx-auto flex items-center justify-between px-6 transition-all duration-300 ${
   isScrolled ? "mt-0" : "mt-5"
 }`}>
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
-  src="/logo.png"
+  src="/Logo.png"
   alt="Vishwak Logo"
   width={100}        // reduce here
   height={35}        // reduce here
