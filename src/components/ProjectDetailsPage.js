@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Download, MapPin, Building2, Home, Maximize2, Calendar, CheckCircle2, Phone, Mail, Share2, Heart, X, Camera, PlayCircle, Map, Move, RotateCw} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, MapPin, Building2, Home, Maximize2, Calendar, CheckCircle2, Phone, Mail, Share2, Heart, X, Camera, PlayCircle, Map, Move, RotateCw, Navigation, Globe2, LocateFixed} from 'lucide-react';
 import * as THREE from 'three';
+import { motion } from "framer-motion";
+
 
 export default function ProjectDetailsPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -291,6 +293,26 @@ export default function ProjectDetailsPage() {
     };
   }, [showCinematic360, current360Image]);
 
+
+const connectivity = [
+    { name: "Chennai Airport", distance: "15 km", time: "25 mins" },
+    { name: "Chennai Central", distance: "25 km", time: "40 mins" },
+    { name: "Tambaram Railway Station", distance: "8 km", time: "15 mins" },
+    { name: "GST Road", distance: "0 km", time: "0 mins" },
+    { name: "OMR IT Corridor", distance: "12 km", time: "20 mins" }
+  ];
+
+  const facilities = [
+    "Fortis Hospital - 3 km",
+    "Chromepet Medical Center - 2 km",
+    "SRM University - 5 km",
+    "VIT University - 8 km",
+    "Phoenix Market City - 10 km",
+    "VGP Snow Kingdom - 12 km",
+    "Tidel Park - 15 km",
+    "DLF IT Park - 8 km",
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Updated Header - Non-Sticky */}
@@ -354,98 +376,128 @@ export default function ProjectDetailsPage() {
           
           {/* Overview Tab */}
           {activeTab === 'overview' && (
-            <div className="space-y-12">
-              <div className="grid md:grid-cols-2 gap-12">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    Premium 2 & 3 BHK Apartments
-                  </h1>
-                  <p className="text-lg text-gray-700 mb-6">Thoraipakkam, Chennai</p>
+           <div className="space-y-20">
 
-                  <p className="text-gray-600 leading-relaxed mb-4">
-                    Discover a world where luxury takes centre stage. A world where architectural
-                    brilliance meets aesthetic functionality. A home where pride, prestige and
-                    panache reign supreme. A home that's a true testament to your achievements
-                    and aspirations.
-                  </p>
+  {/* Main Section */}
+  <div className="grid md:grid-cols-2 gap-16 items-start">
 
-                  <p className="text-gray-600 leading-relaxed">
-                    More than a home, it's your luxury paradise, zen zone, memory trove and a
-                    whole lot of other things. A home that's not just for today but for eternity.
-                  </p>
-                </div>
+    {/* Left Content */}
+    <div className="relative">
+      <div className="absolute -top-6 -left-6 w-20 h-20 bg-green-100 rounded-full blur-2xl opacity-40"></div>
 
-                <div className="space-y-4 text-gray-800">
-                  <div>
-                    <h3 className="font-semibold">TYPE:</h3>
-                    <p>2BHK, 3BHK, 4BHK & 5BHK Apartments</p>
-                  </div>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+        Premium 2 & 3 BHK<br /> 
+        <span className="text-green-600">Apartments</span>
+      </h1>
 
-                  <div>
-                    <h3 className="font-semibold">Block A & B</h3>
-                    <p>2 Basement + Stilt + 22 Floors</p>
-                    <p>2 Basement + Stilt + 10 Floors</p>
-                  </div>
+      <p className="text-xl text-gray-700 mb-6">Thoraipakkam, Chennai</p>
 
-                  <div>
-                    <h3 className="font-semibold">Development Size:</h3>
-                    <p>2.21 acres</p>
-                  </div>
+      <p className="text-gray-600 text-lg leading-relaxed mb-4">
+        Discover a world where luxury takes centre stage—where architectural
+        brilliance meets aesthetic functionality. A home where pride, prestige
+        and panache reign supreme.
+      </p>
 
-                  <div>
-                    <h3 className="font-semibold">No. of Units:</h3>
-                    <p>215 Apartments</p>
-                  </div>
+      <p className="text-gray-600 text-lg leading-relaxed">
+        Discover a world where luxury takes centre stage—where architectural
+        brilliance meets aesthetic functionality. A home where pride, prestige
+        and panache reign supreme.
+      </p>
+       <p className="text-gray-600 text-lg leading-relaxed">
+        Discover a world where luxury takes centre stage—where architectural
+        brilliance meets aesthetic functionality.
+      </p>
+    </div>
 
-                  <div className="flex flex-wrap items-center gap-4 pt-6">
-                    <button
-                      onClick={openCinematic360}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium 
-                        bg-gradient-to-r from-green-600 to-green-500 text-white 
-                        shadow-md hover:shadow-lg hover:scale-105 transition-all"
-                    >
-                      <Camera className="w-5 h-5" />
-                      Cinematic 360° Experience
-                    </button>
+    {/* Right Specs Box */}
+    <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 space-y-6">
+      
+      <div>
+        <h3 className="text-gray-900 font-bold text-sm tracking-wider">TYPE</h3>
+        <p className="text-gray-700 mt-1 text-lg">2BHK, 3BHK, 4BHK & 5BHK Apartments</p>
+      </div>
 
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium 
-                      bg-white text-gray-800 border border-gray-200 
-                      shadow-sm hover:shadow-md hover:border-gray-300 hover:scale-105 transition-all">
-                        <MapPin className="w-5 h-5 text-yellow-600" />
-                        Route Map
-                    </button>
+      <div>
+        <h3 className="text-gray-900 font-bold text-sm tracking-wider">BLOCK A & B</h3>
+        <p className="text-gray-700 mt-1">2 Basement + Stilt + 22 Floors</p>
+        <p className="text-gray-700">2 Basement + Stilt + 10 Floors</p>
+      </div>
 
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium 
-                      bg-orange-500 text-white shadow-md hover:bg-orange-600 hover:shadow-lg hover:scale-105 transition-all">
-                        <PlayCircle className="w-5 h-5" />
-                        Walkthrough
-                    </button>
-                  </div>
-                </div>
-              </div>
+      <div>
+        <h3 className="text-gray-900 font-bold text-sm tracking-wider">DEVELOPMENT SIZE</h3>
+        <p className="text-gray-700 mt-1">2.21 acres</p>
+      </div>
 
-              <div className="grid md:grid-cols-4 gap-6 pt-10">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <img src="/riverwood1.png" className="w-20" alt="Feature 1" />
-                  <p className="font-semibold text-black">DELIVERING ONLY<br />THE BEST</p>
-                </div>
+      <div>
+        <h3 className="text-gray-900 font-bold text-sm tracking-wider">NO. OF UNITS</h3>
+        <p className="text-gray-700 mt-1">215 Apartments</p>
+      </div>
 
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <img src="/riverwood2.png" className="w-20" alt="Feature 2" />
-                  <p className="font-semibold text-black">AFFORDABLE<br />HOMES</p>
-                </div>
+      {/* Buttons */}
+      <div className="flex flex-wrap items-center gap-4 pt-6">
 
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <img src="/riverwood3.png" className="w-20" alt="Feature 3" />
-                  <p className="font-semibold text-black">TOP CLASS<br />AMENITIES</p>
-                </div>
+        {/* 360 Button */}
+        <button
+          onClick={openCinematic360}
+          className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold
+          bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg
+          hover:shadow-xl hover:scale-[1.07] active:scale-[0.97] transition-all"
+        >
+          <Camera className="w-5 h-5" />
+          Cinematic 360°
+        </button>
 
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <img src="/riverwood4.png" className="w-20" alt="Feature 4" />
-                  <p className="font-semibold text-black">ECO-FRIENDLY<br />PROJECTS</p>
-                </div>
-              </div>
-            </div>
+        {/* Route Map */}
+        <button
+          className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold
+          bg-white text-gray-800 border border-gray-200 shadow-sm
+          hover:border-gray-300 hover:shadow-md hover:scale-[1.07] transition-all"
+        >
+          <MapPin className="w-5 h-5 text-yellow-600" />
+          Route Map
+        </button>
+
+        {/* Walkthrough */}
+        <button
+          className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold
+          bg-orange-500 text-white shadow-lg hover:bg-orange-600 
+          hover:shadow-xl hover:scale-[1.07] active:scale-[0.97] transition-all"
+        >
+          <PlayCircle className="w-5 h-5" />
+          Walkthrough
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+  {/* Features Section */}
+  <div className="grid md:grid-cols-4 gap-10 pt-6">
+    
+    {[
+      { img: "/riverwood1.png", label: "DELIVERING ONLY<br/>THE BEST" },
+      { img: "/riverwood2.png", label: "AFFORDABLE<br/>HOMES" },
+      { img: "/riverwood3.png", label: "TOP CLASS<br/>AMENITIES" },
+      { img: "/riverwood4.png", label: "ECO-FRIENDLY<br/>PROJECTS" }
+    ].map((feat, index) => (
+      <div
+        key={index}
+        className="flex flex-col items-center text-center space-y-4 
+        hover:scale-110 transition-transform duration-300 group"
+      >
+        <img src={feat.img} className="w-20 group-hover:drop-shadow-xl transition" />
+        <p
+          className="font-semibold text-black text-sm leading-tight"
+          dangerouslySetInnerHTML={{ __html: feat.label }}
+        />
+      </div>
+    ))}
+
+  </div>
+
+</div>
+
           )}
 
           {/* Why AIRA Tab */}
@@ -503,69 +555,115 @@ export default function ProjectDetailsPage() {
 
           {/* Location Highlights Tab */}
           {activeTab === 'location' && (
-            <div className="space-y-12">
-              <div className="text-center">
-                <h2 className="text-4xl font-bold text-gray-900 mb-6">Location Highlights</h2>
-                <p className="text-xl text-gray-600">
-                  Strategically located for maximum convenience and connectivity
-                </p>
-              </div>
+               <div className="space-y-20 py-20 relative">
 
-              <div className="grid lg:grid-cols-2 gap-12">
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900">Connectivity & Accessibility</h3>
-                  <div className="grid gap-4">
-                    {[
-                      { name: 'Chennai Airport', distance: '15 km', time: '25 mins' },
-                      { name: 'Chennai Central', distance: '25 km', time: '40 mins' },
-                      { name: 'Tambaram Railway Station', distance: '8 km', time: '15 mins' },
-                      { name: 'GST Road', distance: '0 km', time: '0 mins' },
-                      { name: 'OMR IT Corridor', distance: '12 km', time: '20 mins' }
-                    ].map((location, index) => (
-                      <div key={index} className="flex justify-between items-center p-4 bg-white rounded-lg shadow">
-                        <div>
-                          <div className="font-semibold text-gray-900">{location.name}</div>
-                          <div className="text-sm text-gray-600">{location.distance}</div>
-                        </div>
-                        <div className="text-yellow-600 font-semibold">{location.time}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+      {/* Floating Glow Backgrounds */}
+      <div className="absolute top-20 left-10 w-64 h-64 bg-green-300 opacity-20 blur-[120px] rounded-full"></div>
+      <div className="absolute bottom-32 right-10 w-64 h-64 bg-yellow-300 opacity-20 blur-[120px] rounded-full"></div>
 
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-gray-900">Nearby Facilities</h3>
-                  <div className="grid gap-4">
-                    {[
-                      'Fortis Hospital - 3 km',
-                      'Chromepet Medical Center - 2 km',
-                      'SRM University - 5 km',
-                      'VIT University - 8 km',
-                      'Phoenix Market City - 10 km',
-                      'VGP Snow Kingdom - 12 km',
-                      'Tidel Park - 15 km',
-                      'DLF IT Park - 8 km'
-                    ].map((facility, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-lg shadow">
-                        <CheckCircle2 className="w-4 h-4 text-yellow-600" />
-                        <span className="text-gray-700">{facility}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+      {/* Heading */}
+      <div className="text-center mb-10 relative">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="text-5xl font-extrabold text-gray-900"
+        >
+          Location Highlights
+        </motion.h2>
+        <p className="text-lg text-gray-600 mt-4">
+          Futuristic connectivity for a smart lifestyle
+        </p>
+      </div>
 
-              <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Location Map</h3>
-                <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Interactive Map Coming Soon</p>
-                    <p className="text-sm text-gray-500">Urapakkam, GST Road, Chennai</p>
-                  </div>
+      {/* 3D Globe + Connectivity Grid */}
+      <div className="grid lg:grid-cols-2 gap-16 items-center">
+        
+        {/* Left Side 3D Globe Card */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative bg-white p-10 rounded-3xl shadow-xl border border-green-100 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+
+          <div className="flex items-center gap-4 mb-6">
+            <Globe2 className="w-10 h-10 text-green-600" />
+            <h3 className="text-2xl font-bold text-gray-900">Smart Connectivity</h3>
+          </div>
+
+          <div className="space-y-4">
+            {connectivity.map((place, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex justify-between items-center p-4 rounded-xl bg-white/70 backdrop-blur-xl border border-gray-100 shadow-md hover:shadow-lg transition cursor-pointer"
+              >
+                <div>
+                  <div className="font-semibold text-gray-900">{place.name}</div>
+                  <div className="text-gray-500 text-sm">{place.distance}</div>
                 </div>
-              </div>
-            </div>
+                <span className="text-green-600 font-semibold">{place.time}</span>
+              </motion.div>
+            ))}
+          </div>
+
+        </motion.div>
+
+        {/* Right Side Facilities Card */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="bg-white p-10 rounded-3xl shadow-xl border border-yellow-100 space-y-6"
+        >
+          <div className="flex items-center gap-4 mb-2">
+            <Navigation className="w-10 h-10 text-yellow-600" />
+            <h3 className="text-2xl font-bold text-gray-900">Nearby Facilities</h3>
+          </div>
+
+          <div className="grid gap-3">
+            {facilities.map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.07 }}
+                className="flex items-center gap-3 bg-white/80 p-3 shadow rounded-xl border border-gray-100 hover:bg-yellow-50 transition cursor-pointer"
+              >
+                <CheckCircle2 className="w-5 h-5 text-yellow-600" />
+                <span className="text-gray-700">{item}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+      </div>
+
+      {/* Futuristic Location Map */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        className="bg-white p-12 rounded-3xl shadow-xl border border-gray-100 text-center relative"
+      >
+        <h3 className="text-3xl font-bold text-gray-900 mb-8">Interactive Location Map</h3>
+
+        <div className="relative h-96 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+          <div className="absolute inset-0 bg-[url('/worldmap-light.png')] bg-cover opacity-20"></div>
+
+          <div className="text-center relative z-10">
+            <LocateFixed className="w-14 h-14 text-green-600 mx-auto mb-6 animate-pulse" />
+            <p className="text-gray-600 text-lg">Interactive Map Coming Soon</p>
+            <p className="text-sm text-gray-500 mt-1">Urapakkam, GST Road, Chennai</p>
+          </div>
+        </div>
+      </motion.div>
+
+    </div>
           )}
 
           {/* Floor Plans Tab */}

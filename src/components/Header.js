@@ -94,18 +94,19 @@ export default function Header() {
       <nav className={`transition-all duration-300 ${
         isScrolled ? 'py-2' : 'py-4'
       }`}>
-<div className={`max-w-[95%] mx-auto flex items-center justify-between px-6 transition-all duration-300 ${
+<div className={`max-w-[80%] mx-auto flex items-center justify-between px-6 transition-all duration-300 ${
   isScrolled ? "mt-0" : "mt-5"
 }`}>
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
-              src="/logo.png"
-              alt="Vishwak Logo"
-              width={isScrolled ? 130 : 150}
-              height={isScrolled ? 40 : 50}
-              className="object-contain transition-all duration-300"
-            />
+  src="/logo.png"
+  alt="Vishwak Logo"
+  width={100}        // reduce here
+  height={35}        // reduce here
+  className="object-contain transition-all duration-300 mt-4"
+/>
+
           </Link>
 
           {/* Desktop Menu - All text in black */}

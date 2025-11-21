@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,6 +14,7 @@ export default function HeroSection() {
   const [openMenu, setOpenMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const slides = [
     {
@@ -225,6 +225,15 @@ export default function HeroSection() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
@@ -293,28 +302,46 @@ export default function HeroSection() {
 
   return (
     <>
+      <style>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
    
-{/* Ultra Slim Vertical Button */}
-<div className="fixed right-0 top-1/2 -translate-y-1/2 z-50">
-  <button
-    onClick={() => setIsModalOpen(true)}
-    className="
-      bg-[#e0a300]
-      hover:bg-[#c98f00]
-      text-black
-      px-5 py-5
-      rounded-l-md
-      shadow-xl
-      flex items-center justify-center
-      transition-all duration-300
-    "
-    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-  >
-    <span className="text-[12px] font-semibold tracking-widest">
-      ENQUIRE NOW
-    </span>
-  </button>
-</div>
+      {/* Ultra Slim Vertical Button */}
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="
+            bg-[#e0a300]
+            hover:bg-[#c98f00]
+            text-black
+            px-5 py-5
+            rounded-l-md
+            shadow-xl
+            flex items-center justify-center
+            transition-all duration-300
+          "
+          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+        >
+          <span className="text-[12px] font-semibold tracking-widest">
+            ENQUIRE NOW
+          </span>
+        </button>
+      </div>
 
       {/* Enquiry Modal */}
       {isModalOpen && (
@@ -459,9 +486,80 @@ export default function HeroSection() {
         </div>
 
         {/* Top Header Bar */}
-        <div className="absolute top-0 left-0 right-0 bg-[#2d2d2d] text-white py-1.5 px-6 flex justify-between items-center text-[11px] z-20">
-          <div className="tracking-wide">Email : vishwakproperties@gmail.com</div>
-          <div className="tracking-wide">Call us now : +91 - 93455 66568</div>
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white z-20 shadow-lg overflow-hidden transition-all duration-500">
+          {/* Running Text - Shows when not scrolled */}
+          <div className={`transition-all duration-500 ${isScrolled ? 'h-0 opacity-0' : 'h-12 opacity-100'}`}>
+            <div className="flex items-center h-full overflow-hidden">
+              <div className="animate-marquee whitespace-nowrap flex items-center gap-8 px-4">
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span className="text-yellow-400">NEW LAUNCH:</span>
+                  Premium 3 BHK Apartments at OMR Starting from ₹65 Lakhs
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span className="text-green-400">LIMITED OFFER:</span>
+                  Book Now & Get 5% Discount + Free Registration
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <Diamond className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-400">EXCLUSIVE:</span>
+                  Pre-Launch Villas in Chengalpattu - Register Interest Today
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <ThumbsUp className="w-4 h-4 text-purple-400" />
+                  <span className="text-purple-400">CUSTOMER CHOICE:</span>
+                  Rated 4.8/5 by 1000+ Happy Homeowners
+                </span>
+                <span className="text-gray-400">•</span>
+                {/* Duplicate for seamless loop */}
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span className="text-yellow-400">NEW LAUNCH:</span>
+                  Premium 3 BHK Apartments at OMR Starting from ₹65 Lakhs
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span className="text-green-400">LIMITED OFFER:</span>
+                  Book Now & Get 5% Discount + Free Registration
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <Diamond className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-400">EXCLUSIVE:</span>
+                  Pre-Launch Villas in Chengalpattu - Register Interest Today
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="inline-flex items-center gap-2 text-sm font-medium">
+                  <ThumbsUp className="w-4 h-4 text-purple-400" />
+                  <span className="text-purple-400">CUSTOMER CHOICE:</span>
+                  Rated 4.8/5 by 1000+ Happy Homeowners
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Info - Shows when scrolled */}
+          <div className={`transition-all duration-500 ${isScrolled ? 'h-10 opacity-100' : 'h-0 opacity-0'}`}>
+            <div className="flex justify-between items-center h-full px-6 text-xs">
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-[#67a139]" />
+                <a href="mailto:vishwakproperties@gmail.com" className="hover:text-[#67a139] transition-colors">
+                  vishwakproperties@gmail.com
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-[#67a139]" />
+                <a href="tel:+919345566568" className="hover:text-[#67a139] transition-colors">
+                  +91 93455 66568
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -504,13 +602,15 @@ export default function HeroSection() {
               </h2>
 
               <p className="text-gray-600 text-base leading-relaxed mb-8">
+                Our commitment to trust, affordability, and transparency is rewarded with highest-in-the-market customer referrals, and the lion's share of sales volumes.                Our commitment to trust, affordability, and transparency is rewarded with highest-in-the-market customer referrals, and the lion's share of sales volumes.
                 Our commitment to trust, affordability, and transparency is rewarded with highest-in-the-market customer referrals, and the lion's share of sales volumes.
+
               </p>
 
               <Link href="/about">
-                <button className="bg-[#67a139] text-white px-8 py-3 rounded-full font-medium text-sm uppercase tracking-wider hover:bg-red-700 transition-colors shadow-lg flex items-center gap-2">
+                <button className="bg-[#67a139] text-white px-8 py-3 rounded-full font-medium text-sm uppercase tracking-wider hover:bg-yellow-600 transition-colors shadow-lg flex items-center gap-2">
                   EXPLORE
-                  <Plus className="w-5 h-5" />
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </Link>
             </div>
@@ -599,7 +699,7 @@ export default function HeroSection() {
 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h3 className="text-[20px] font-bold text-gray-900">
                       {project.name}
                     </h3>
                     <Link href={`/projects/${project.id}`}>
@@ -903,47 +1003,55 @@ export default function HeroSection() {
                 const position = getCardPosition(index);
                 
                 return (
-                  <div
-                    key={index}
-                    className={`absolute transition-all duration-500 ease-in-out ${
-                      position === 'center'
-                        ? 'z-30 scale-100 opacity-100'
-                        : position === 'left'
-                        ? 'z-10 scale-75 opacity-30 blur-[2px]'
-                        : position === 'right'
-                        ? 'z-10 scale-75 opacity-30 blur-[2px]'
-                        : 'opacity-0 scale-50 pointer-events-none'
-                    }`}
-                    style={{
-                      left: position === 'center' ? '50%' : position === 'left' ? '10%' : position === 'right' ? '90%' : '50%',
-                      top: '50%',
-                      transform: `translate(-50%, -50%)`
-                    }}
-                  >
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 w-80 md:w-[420px] xl:w-[480px] min-h-[280px] flex flex-col justify-between">
-                      <div className="flex justify-center gap-1 mb-6">
-                        {[...Array(5)].map((_, i) => (
-                          <svg
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < testimonial.rating ? 'fill-yellow-400' : 'fill-gray-300'
-                            }`}
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                          </svg>
-                        ))}
-                      </div>
+            <div
+  key={index}
+  className={`absolute transition-all duration-500 ease-in-out ${
+    position === "center"
+      ? "z-30 opacity-100 scale-100"
+      : position === "left"
+      ? "z-20 opacity-40 blur-[2px] scale-90"
+      : position === "right"
+      ? "z-20 opacity-40 blur-[2px] scale-90"
+      : "opacity-0 scale-75 pointer-events-none"
+  }`}
+  style={{
+    top: "50%",
+    left: "50%",
+    transform:
+      position === "center"
+        ? "translate(-50%, -50%)"
+        : position === "left"
+        ? "translate(calc(-50% - 260px), -50%)"
+        : position === "right"
+        ? "translate(calc(-50% + 260px), -50%)"
+        : "translate(-50%, -50%)",
+  }}
+>
+  <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 w-80 md:w-[420px] xl:w-[480px] min-h-[280px] flex flex-col justify-between">
+    <div className="flex justify-center gap-1 mb-6">
+      {[...Array(5)].map((_, i) => (
+        <svg
+          key={i}
+          className={`w-5 h-5 ${
+            i < testimonial.rating ? "fill-yellow-400" : "fill-gray-300"
+          }`}
+          viewBox="0 0 20 20"
+        >
+          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+        </svg>
+      ))}
+    </div>
 
-                      <p className="text-gray-700 text-center text-base md:text-lg mb-6 leading-relaxed flex-grow flex items-center justify-center px-4">
-                        {testimonial.text}
-                      </p>
+    <p className="text-gray-700 text-center text-base md:text-lg mb-6 leading-relaxed flex-grow flex items-center justify-center px-4">
+      {testimonial.text}
+    </p>
 
-                      <p className="text-gray-900 font-bold text-center text-lg">
-                        {testimonial.author}
-                      </p>
-                    </div>
-                  </div>
+    <p className="text-gray-900 font-bold text-center text-lg">
+      {testimonial.author}
+    </p>
+  </div>
+</div>
+
                 );
               })}
             </div>
