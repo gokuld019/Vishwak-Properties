@@ -5,13 +5,13 @@ import { Building2, Users, Target, Award, Home, TrendingUp } from "lucide-react"
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#f6f8fa]">
+    <div className="min-h-screen">
 
       {/* HERO */}
-      <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[70vh] flex items-center justify-left overflow-hidden">
         <motion.img
-          src="https://images.unsplash.com/photo-1501183638710-841dd1904471"
-          className="absolute inset-0 w-full h-full object-cover brightness-[0.45]"
+          src="/a5.png"
+          className="absolute inset-0 w-full h-full object-cover"
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.4 }}
@@ -21,17 +21,16 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold text-white z-10 text-center"
+          className="text-5xl ml-50 md:text-7xl font-bold text-black z-10"
         >
-          About <span className="text-[#6EE787]">Our Story</span>
+         Excellence Begins <span className="text-black"><br />With the Right Plot.</span>
         </motion.h1>
       </section>
 
       {/* WHO WE ARE */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
         <motion.img
-          src="https://images.unsplash.com/photo-1523217582562-09d0def993a6"
-          className="rounded-3xl shadow-2xl"
+          src="/i3.webp"
           initial={{ opacity: 0, x: -40 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7 }}
@@ -96,7 +95,7 @@ export default function AboutPage() {
         </motion.div>
 
         <motion.img
-          src="https://images.unsplash.com/photo-1527181152855-fc03fc7949c8"
+          src="/i2.webp"
           className="rounded-3xl shadow-xl"
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}

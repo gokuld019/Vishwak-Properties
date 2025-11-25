@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown } from 'lucide-react';
 
 const navigationLinks = [
@@ -40,8 +41,6 @@ const navigationLinks = [
       ]
     }
   },
-
-  /* 🟩 NEW — COMPLETED PROJECTS WITH MEGA MENU */
   {
     name: 'COMPLETED PROJECTS',
     href: '/projects/completed',
@@ -53,27 +52,17 @@ const navigationLinks = [
             { name: 'Sameera Grand City – East Tambaram', href: '/projects/completed/plots/green-meadows' },
             { name: 'Kumaran Nagar – Vandalur', href: '/projects/completed/plots/sundaram-enclave' },
             { name: 'Anna Nagar – Vandalur', href: '/projects/completed/plots/aaditya-nagar', tag: 'Sold Out' },
-
-            { name: 'Thirumal Nagar – East Tambaram', href: '/projects/completed/plots/sundaram-enclave' },
-            { name: 'Vasantham Nagar – Tambaram', href: '/projects/completed/plots/sundaram-enclave' },
-            { name: 'Gowtham Kiran Avenue – Maraimalai Nagar', href: '/projects/completed/plots/sundaram-enclave' },
-            { name: 'Sakthi Sai Nagar – Urapakkam', href: '/projects/completed/plots/sundaram-enclave' },
-            { name: 'Supreme City – Kayarambedu, Guduvanchery', href: '/projects/completed/plots/sundaram-enclave' },
-            { name: 'Akshaya Avenue – Oragadam', href: '/projects/completed/plots/sundaram-enclave' },
-
           ]
         },
         {
           title: 'VILLAS',
           items: [
             { name: 'Sameera Grand City -Villas @ East Tambaram', href: '/projects/completed/villas/elite-homes', tag: 'Premium' },
-           
           ]
         }
       ]
     }
   },
-
   {
     name: 'EMI CALCULATOR',
     href: '/emi-calculator',
@@ -88,64 +77,60 @@ const navigationLinks = [
   },
 ];
 
-
 export default function Header() {
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
+  
   const [openMenu, setOpenMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const hoverColor = 'hover:text-[#67a139]';
+  const hoverBgColor = 'hover:bg-[#e0f2d6]';
+
+  // Determine header background based on page and scroll state
+  const getHeaderClasses = () => {
+    // All pages: transparent initially, white on scroll
+    return isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent';
+  };
+
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-lg' 
-        : 'bg-transparent'
-    }`}>
-      {/* Top Header Bar - Only show when scrolled */}
-      {isScrolled && (
-        <div className="bg-[#2d2d2d] text-white py-1.5 px-6 flex justify-between items-center text-[11px]">
-          <div className="tracking-wide">Email : vishwakproperties@gmail.com</div>
-          <div className="tracking-wide">Call us now : +91 - 93455 66568</div>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getHeaderClasses()}`}>
+      {(isScrolled || !isHomePage) && (
+        <div className="bg-[#2d2d2d] text-white py-2 px-4 lg:py-1.5 lg:px-6">
+          <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-1 sm:gap-2 text-[10px] sm:text-[11px]">
+            <div className="tracking-wide text-center sm:text-left">Email: vishwakproperties@gmail.com</div>
+            <div className="tracking-wide text-center sm:text-left">Call us: +91 - 93455 66568</div>
+          </div>
         </div>
       )}
 
-   {/* Navigation Menu */}
-<nav className={`transition-all duration-300 ${
-  isScrolled ? '' : 'py-4'
-}`}>
-
-<div className={`max-w-[80%] mx-auto flex items-center justify-between px-6 transition-all duration-300 ${
-  isScrolled ? "mt-0" : "mt-5"
-}`}>
-          {/* Logo */}
+      <nav className={`transition-all duration-300 ${(isScrolled || !isHomePage) ? 'py-2 lg:py-0' : 'py-3 lg:py-4'}`}>
+        <div className={`w-[92%] lg:max-w-[80%] mx-auto flex items-center justify-between px-3 lg:px-6 transition-all duration-300 ${!isHomePage ? "mt-0" : (isScrolled ? "mt-0" : "mt-3 lg:mt-5")}`}>
           <Link href="/" className="flex items-center">
             <Image
-  src="/Logo.png"
-  alt="Vishwak Logo"
-  width={100}        // reduce here
-  height={35}        // reduce here
-  className="object-contain transition-all duration-300 mt-4"
-/>
-
+              src="/Logo.png"
+              alt="Vishwak Logo"
+              width={100}
+              height={35}
+              className="object-contain transition-all duration-300 mt-2 lg:mt-4 w-[75px] sm:w-[85px] lg:w-[100px] h-auto"
+            />
           </Link>
 
-          {/* Desktop Menu - All text in black */}
+          {/* Desktop Menu */}
           <ul className="hidden lg:flex items-center gap-8 text-[15px] font-bold tracking-[0.1em] uppercase text-black">
             {navigationLinks.map((link) => {
-              // If link has mega menu (ONGOING PROJECTS)
               if (link.megaMenu) {
                 return (
                   <li
                     key={link.name}
-                    className="relative cursor-pointer hover:text-[#f59e0b] transition-colors duration-200"
+                    className={`relative cursor-pointer transition-colors duration-200 ${hoverColor}`}
                     onMouseEnter={() => setOpenMenu(link.name)}
                     onMouseLeave={() => setOpenMenu(null)}
                   >
@@ -154,43 +139,24 @@ export default function Header() {
                       <ChevronDown className="w-3 h-3" />
                     </div>
 
-                    {/* Mega Menu Dropdown */}
                     {openMenu === link.name && (
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full pt-4 w-[600px]">
                         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
                           <div className="grid grid-cols-2 gap-6 p-6">
                             {link.megaMenu.categories.map((category) => (
                               <div key={category.title}>
-                                <div className={`flex items-center space-x-2 mb-4 pb-3 border-b-2 ${
-                                  category.title === 'PLOTS' ? 'border-orange-500' : 'border-green-600'
-                                }`}>
+                                <div className="flex items-center space-x-2 mb-4 pb-3 border-b-2 border-gray-200">
                                   <h3 className="text-base font-bold text-gray-900">{category.title}</h3>
-                                  <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold ${
-                                    category.title === 'PLOTS' 
-                                      ? 'bg-orange-100 text-orange-600' 
-                                      : 'bg-green-100 text-green-600'
-                                  }`}>
-                                    {category.items.length} Projects
-                                  </span>
+                                  <span className="ml-auto text-xs px-2 py-1 rounded-full font-semibold bg-gray-100 text-gray-700">{category.items.length} Projects</span>
                                 </div>
                                 <ul className="space-y-2">
                                   {category.items.map((item) => (
                                     <li key={item.name}>
                                       <Link
                                         href={item.href}
-                                        className={`group flex items-center justify-between p-2.5 rounded-lg transition-all duration-200 ${
-                                          category.title === 'PLOTS'
-                                            ? 'hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50'
-                                            : 'hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50'
-                                        }`}
+                                        className={`group flex items-center justify-between p-2.5 rounded-lg transition-all duration-200 ${hoverColor} ${hoverBgColor}`}
                                       >
-                                        <span className={`text-xs text-gray-700 font-medium transition-colors normal-case ${
-                                          category.title === 'PLOTS'
-                                            ? 'group-hover:text-orange-600'
-                                            : 'group-hover:text-green-600'
-                                        }`}>
-                                          {item.name}
-                                        </span>
+                                        <span className="text-xs text-gray-700 font-medium transition-colors normal-case">{item.name}</span>
                                       </Link>
                                     </li>
                                   ))}
@@ -199,7 +165,6 @@ export default function Header() {
                             ))}
                           </div>
 
-                          {/* Bottom Action Bar */}
                           <div className="bg-gradient-to-r from-[#2d2d2d] to-gray-800 px-6 py-3">
                             <div className="flex items-center justify-between text-white">
                               <div className="flex items-center space-x-2">
@@ -210,7 +175,7 @@ export default function Header() {
                               </div>
                               <Link
                                 href="/contact"
-                                className="text-xs bg-[#f59e0b] text-white px-4 py-1.5 rounded-lg font-bold hover:bg-[#ea950a] transition-colors uppercase tracking-wider"
+                                className="text-xs bg-[#67a139] text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors uppercase tracking-wider"
                               >
                                 Talk to Expert
                               </Link>
@@ -223,19 +188,19 @@ export default function Header() {
                 );
               }
 
-              // Regular link without mega menu
               return (
-                <li key={link.name} className="cursor-pointer hover:text-[#f59e0b] transition-colors duration-200">
+                <li key={link.name} className={`cursor-pointer transition-colors duration-200 ${hoverColor}`}>
                   <Link href={link.href}>{link.name}</Link>
                 </li>
               );
             })}
           </ul>
 
-          {/* Mobile Menu Icon - Black color */}
-          <button
-            className="lg:hidden text-black transition-colors duration-300"
+          {/* Mobile Menu Icon */}
+          <button 
+            className="lg:hidden text-black transition-colors duration-300 p-2 hover:bg-gray-100 rounded-lg" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -244,35 +209,35 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-md shadow-2xl max-h-[80vh] overflow-y-auto">
-          <ul className="p-6 space-y-4 text-sm font-bold text-black uppercase">
+        <div className="lg:hidden bg-white/98 backdrop-blur-md shadow-2xl max-h-[75vh] overflow-y-auto border-t border-gray-100">
+          <ul className="p-4 space-y-3 text-sm font-bold text-black">
             {navigationLinks.map((link) => {
               if (link.megaMenu) {
                 return (
-                  <li key={link.name} className="border-b border-gray-200 pb-3">
-                    <Link href={link.href} className="block mb-2" onClick={() => setMobileMenuOpen(false)}>
+                  <li key={link.name} className="border-b border-gray-100 pb-3">
+                    <Link 
+                      href={link.href} 
+                      className={`block mb-3 uppercase text-base ${hoverColor}`} 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       {link.name}
                     </Link>
                     {link.megaMenu.categories.map((category) => (
-                      <div key={category.title} className="mt-2">
-                        <div className={`font-bold mb-2 ${
-                          category.title === 'PLOTS' ? 'text-orange-600' : 'text-green-600'
-                        }`}>
+                      <div key={category.title} className="mt-3 bg-gray-50 rounded-lg p-3">
+                        <div className={`font-bold mb-2 text-sm uppercase ${hoverColor} text-gray-800`}>
                           {category.title}
                         </div>
-                        <ul className="space-y-2 pl-4">
+                        <ul className="space-y-2">
                           {category.items.map((item) => (
                             <li key={item.name} className="text-xs normal-case font-medium">
-                              <Link 
-                                href={item.href} 
-                                className="flex justify-between items-center"
+                              <Link
+                                href={item.href}
+                                className={`flex justify-between items-center p-2 rounded-md transition-all duration-200 ${hoverColor} ${hoverBgColor}`}
                                 onClick={() => setMobileMenuOpen(false)}
                               >
-                                {item.name}
+                                <span className="flex-1 pr-2">{item.name}</span>
                                 {item.tag && (
-                                  <span className={`text-[10px] text-white px-2 py-0.5 rounded ${
-                                    category.title === 'PLOTS' ? 'bg-orange-500' : 'bg-green-600'
-                                  }`}>
+                                  <span className="text-[9px] text-white px-2 py-0.5 rounded-full bg-[#67a139] whitespace-nowrap flex-shrink-0">
                                     {item.tag}
                                   </span>
                                 )}
@@ -286,9 +251,10 @@ export default function Header() {
                 );
               }
               return (
-                <li key={link.name} className="border-b border-gray-200 pb-3">
+                <li key={link.name} className="border-b border-gray-100 pb-3">
                   <Link 
                     href={link.href} 
+                    className={`block uppercase text-base ${hoverColor}`} 
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.name}
