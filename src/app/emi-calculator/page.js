@@ -42,11 +42,15 @@ const EChart = dynamic(
         ],
       };
 
-      return <ReactECharts option={option} style={{ height: 300 }} />;
+      return (
+        <ReactECharts
+          option={option}
+          style={{ height: "280px" }}
+          className="sm:!h-[320px]"
+        />
+      );
     }),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
 export default function EMICalculatorPage() {
@@ -57,34 +61,33 @@ export default function EMICalculatorPage() {
   const emi = calculateEMI(loan, rate, years);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-100 py-16 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-100 py-12 sm:py-16 px-4 sm:px-6">
       {/* HEADER */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-14"
+        className="text-center mb-10 sm:mb-14"
       >
-        <h1 className="text-5xl mt-30 font-extrabold bg-gradient-to-r from-emerald-600 to-green-800 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl mt-10 font-extrabold bg-gradient-to-r from-emerald-600 to-green-800 bg-clip-text text-transparent">
           Smart EMI Calculator
         </h1>
-        <p className="text-gray-600 mt-3 text-lg">
+        <p className="text-gray-600 mt-3 text-base sm:text-lg">
           Modern, sleek & future-ready calculator for real estate buyers
         </p>
       </motion.div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
         {/* LEFT SECTION */}
         <motion.div initial={{ opacity: 0, x: -25 }} animate={{ opacity: 1, x: 0 }}>
-          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl rounded-3xl p-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl rounded-3xl p-3 sm:p-4">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Calculator className="text-emerald-600" />
                 Calculate Monthly EMI
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-8">
-              {/* LOAN INPUT */}
+            <CardContent className="space-y-6 sm:space-y-8">
               <InputBlock
                 label="Loan Amount (₹)"
                 value={loan}
@@ -93,7 +96,6 @@ export default function EMICalculatorPage() {
                 step={50000}
               />
 
-              {/* RATE INPUT */}
               <InputBlock
                 label="Interest Rate (%)"
                 value={rate}
@@ -102,7 +104,6 @@ export default function EMICalculatorPage() {
                 step={0.1}
               />
 
-              {/* YEARS INPUT */}
               <InputBlock
                 label="Loan Tenure (Years)"
                 value={years}
@@ -113,17 +114,17 @@ export default function EMICalculatorPage() {
 
               {/* EMI OUTPUT */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-8 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 text-white text-center shadow-xl"
+                className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 text-white text-center shadow-xl"
               >
-                <p className="text-lg opacity-80">Your EMI</p>
-                <h2 className="text-5xl font-bold mt-2">
+                <p className="text-sm sm:text-lg opacity-80">Your EMI</p>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mt-2 break-all">
                   ₹<NumberFlow value={emi} />
                 </h2>
               </motion.div>
 
-              <Button className="w-full py-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-lg font-semibold shadow-lg">
+              <Button className="w-full py-5 sm:py-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-base sm:text-lg font-semibold shadow-lg">
                 Download EMI PDF Report
               </Button>
             </CardContent>
@@ -132,10 +133,9 @@ export default function EMICalculatorPage() {
 
         {/* RIGHT SECTION */}
         <motion.div initial={{ opacity: 0, x: 25 }} animate={{ opacity: 1, x: 0 }}>
-          {/* EMI PIE CHART */}
-          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl p-4 rounded-3xl mb-10">
+          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl p-3 sm:p-4 rounded-3xl mb-8 sm:mb-10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <TrendingUp className="text-green-700" />
                 EMI Breakdown Chart
               </CardTitle>
@@ -145,10 +145,9 @@ export default function EMICalculatorPage() {
             </CardContent>
           </Card>
 
-          {/* BANK TABLE */}
-          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl p-4 rounded-3xl">
+          <Card className="bg-white/50 backdrop-blur-xl border-white/40 shadow-xl p-3 sm:p-4 rounded-3xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Building2 className="text-emerald-700" />
                 Bank Interest Comparison
               </CardTitle>
@@ -171,12 +170,14 @@ export default function EMICalculatorPage() {
 function InputBlock({ label, value, onChange, max, step }) {
   return (
     <div>
-      <label className="text-gray-700 font-medium">{label}</label>
+      <label className="text-gray-700 font-medium text-sm sm:text-base">
+        {label}
+      </label>
       <Input
         type="number"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-2"
+        className="mt-2 text-sm sm:text-base"
       />
       <Slider
         defaultValue={[value]}
@@ -205,7 +206,7 @@ function BankTable() {
   ];
 
   return (
-    <table className="w-full text-left">
+    <table className="w-full text-left text-sm sm:text-base">
       <thead>
         <tr className="border-b border-gray-300">
           <th className="py-3 text-gray-600">Bank</th>

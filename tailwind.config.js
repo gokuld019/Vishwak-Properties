@@ -37,3 +37,39 @@ module.exports = {
   },
   plugins: [],
 }
+
+
+
+
+// tailwind.config.js
+module.exports = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      translate: {
+        'z-[-500px]': '-500px',
+        'z-[-200px]': '-200px',
+        'z-0': '0',
+      },
+      scale: {
+        '150': '1.5',
+        '125': '1.25',
+        '100': '1',
+      },
+      animation: {
+        'bounce': 'bounce 2s infinite',
+      },
+      keyframes: {
+        bounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
