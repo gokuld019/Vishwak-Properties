@@ -46,7 +46,7 @@ export default function PropertyPopup() {
         {/* CLOSE BUTTON */}
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute top-3 right-3 z-20 bg-black/70 hover:bg-black text-white rounded-full p-2"
+          className="absolute top-0 right-0 z-20  text-black rounded-full p-2"
         >
           <X className="w-5 h-5" />
         </button>
@@ -61,11 +61,11 @@ export default function PropertyPopup() {
         </div>
 
         {/* MOBILE */}
-        <div className="block md:hidden relative w-full h-[420px]">
+        <div className="block md:hidden ">
           <img
             src="/Popup-mobile1.jpeg"
             alt="Property Mobile"
-            className="absolute inset-0 w-full h-full object-cover"
+            className=""
           />
         </div>
       </div>

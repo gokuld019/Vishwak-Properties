@@ -69,7 +69,7 @@ export default function ContactPage() {
                       rounded-full" />
 
       {/* CONTENT */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 xs:px-5 sm:px-6 lg:px-10 pt-16 sm:pt-24 md:pt-40 pb-12 sm:pb-16 md:pb-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-16 sm:pt-24 md:pt-40 pb-12 sm:pb-16 md:pb-20">
 
         {/* HEADER */}
         <motion.div
@@ -77,14 +77,12 @@ export default function ContactPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10 sm:mb-14 md:mb-20"
         >
-
-          {/* Badge */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm
-                       border border-gray-200 rounded-full px-4 py-2 mb-6 md:mb-8 shadow-sm"
+                       border border-gray-200 rounded-full px-4 py-2 mb-6 shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-amber-500" />
             <span className="text-sm font-medium text-gray-700">
@@ -92,17 +90,17 @@ export default function ContactPage() {
             </span>
           </motion.div>
 
-          <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-gray-900">
             Contact <span className="text-green-600">Us</span>
           </h1>
 
-          <p className="text-gray-600 text-sm xs:text-base sm:text-lg md:text-xl mt-3 md:mt-4 max-w-2xl mx-auto px-2">
+          <p className="text-gray-600 text-base sm:text-lg md:text-xl mt-4 max-w-2xl mx-auto">
             We're always here to assist you with your real estate queries.
           </p>
         </motion.div>
 
         {/* GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-16 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-stretch">
 
           {/* LEFT INFO */}
           <motion.div
@@ -111,10 +109,10 @@ export default function ContactPage() {
             className="flex flex-col bg-white/60 backdrop-blur-2xl
                        border border-white/60
                        shadow-[0_20px_60px_rgba(0,0,0,0.08)]
-                       rounded-2xl sm:rounded-3xl
-                       p-6 sm:p-8 md:p-10 h-full"
+                       rounded-3xl
+                       p-8 md:p-10"
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
               Get in Touch
             </h2>
 
@@ -145,7 +143,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-[22%] h-14 bg-gradient-to-br from-green-500 to-green-600
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600
                                 rounded-2xl flex items-center justify-center shadow-lg">
                   <MapPin className="text-white" />
                 </div>
@@ -168,21 +166,17 @@ export default function ContactPage() {
             ref={messageRef}
             className="flex flex-col bg-white border border-gray-100
                        shadow-[0_30px_80px_rgba(0,0,0,0.1)]
-                       rounded-2xl sm:rounded-3xl
-                       p-6 sm:p-8 md:p-10 h-full"
+                       rounded-3xl
+                       p-8 md:p-10"
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
               Send a Message
             </h2>
 
             {(successMsg || errorMsg) && (
               <div className="mb-4">
-                {successMsg && (
-                  <p className="text-green-600">{successMsg}</p>
-                )}
-                {errorMsg && (
-                  <p className="text-red-600">{errorMsg}</p>
-                )}
+                {successMsg && <p className="text-green-600">{successMsg}</p>}
+                {errorMsg && <p className="text-red-600">{errorMsg}</p>}
               </div>
             )}
 
@@ -228,6 +222,45 @@ export default function ContactPage() {
           </motion.div>
 
         </div>
+
+        {/* ===== LOCATION MAP SECTION ===== */}
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mt-20 md:mt-28"
+        >
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Our <span className="text-green-600">Location</span>
+            </h2>
+            <p className="text-gray-600 mt-3 text-base md:text-lg max-w-2xl mx-auto">
+              Visit our office and explore opportunities in person.
+            </p>
+          </div>
+
+          <div className="relative rounded-3xl overflow-hidden
+                          shadow-[0_30px_80px_rgba(0,0,0,0.12)]
+                          border border-white/60
+                          backdrop-blur-xl bg-white/70">
+
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-400/30 blur-3xl rounded-full" />
+
+            <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
+              <iframe
+                src="https://www.google.com/maps?q=Vishwak%20Properties%20Tambaram%20West%20Chennai&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                className="w-full h-full"
+              ></iframe>
+            </div>
+          </div>
+        </motion.section>
+
       </div>
     </div>
   );

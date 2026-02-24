@@ -555,10 +555,63 @@ const ChatAssistant = () => {
 
         /* ── Mobile ── */
         @media (max-width: 480px) {
-          .vp-window  { width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0; }
-          .vp-fab     { bottom: 20px; right: 20px; }
-          .vp-tooltip { right: 90px; }
-        }
+
+  /* Fullscreen chat window */
+  .vp-window  {
+    width: 100%;
+    height: 100%;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+  }
+
+  /* Floating Button Position */
+  .vp-fab {
+    bottom: 18px;
+    right: 18px;
+  }
+
+  /* Smaller Logo Button */
+  .vp-fab-inner {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Adjust outer pulse ring */
+  .vp-fab-ring {
+    inset: -4px;
+  }
+
+  /* Smaller CHAT badge */
+  .vp-fab-badge {
+    font-size: 8px;
+    padding: 2px 8px;
+    min-width: 40px;
+  }
+
+  /* Slightly smaller avatar inside chat header */
+  .vp-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  /* Reduce header padding slightly */
+  .vp-header {
+    padding: 14px 14px 24px;
+  }
+
+  /* Slightly smaller message text for better fit */
+  .vp-bubble {
+    font-size: 13px;
+  }
+
+  /* Adjust tooltip position */
+  .vp-tooltip {
+    right: 80px;
+    padding: 10px 14px;
+  }
+
+}
       `}</style>
     </>
   );
