@@ -85,8 +85,8 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const headerHeight = isScrolled ? 110 : 180;
-  const navPaddingTop = isScrolled ? "pt-[5px]" : "pt-[60px]";
+  const headerHeight = isScrolled ? 118 : 180;
+  const navPaddingTop = isScrolled ? "pt-[4px]" : "pt-[60px]";
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -111,7 +111,7 @@ export default function Header() {
   } left-0 right-0 z-50 transition-all duration-300
     ${
       isScrolled
-        ? "bg-white/98 backdrop-blur-2xl shadow-2xl border-b border-gray-100"
+        ? "bg-white/98 backdrop-blur-2xl border-b border-gray-100"
         : "bg-transparent"
     }
   `}
@@ -122,16 +122,19 @@ export default function Header() {
 
       {(isScrolled || !isHomePage) && (
         <div className="bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white py-2.5 px-4">
-          <div className="flex justify-between text-[13px] font-medium">
-            <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Email: info@vishwakproperties.in
-            </span>
-            <span className="flex items-center gap-2">
-              Call us: +91 74011 31313
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            </span>
-          </div>
+          <div className="flex justify-between items-center 
+                text-[10px] sm:text-[12px] md:text-[13px] 
+                font-medium">
+  <span className="flex items-center gap-1 sm:gap-2">
+    <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+    Email: info@vishwakproperties.in
+  </span>
+
+  <span className="flex items-center gap-1 sm:gap-2">
+    Call us: +91 74011 31313
+    <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-400"></span>
+  </span>
+</div>
         </div>
       )}
 
@@ -139,15 +142,15 @@ export default function Header() {
         <div
           className={`w-[92%] lg:max-w-[80%] mx-auto flex items-center justify-between px-3 ${navPaddingTop}`}
         >
-          <Link href="/">
-            <Image
-              src="/Logo.png"
-              alt="Logo"
-              width={100}
-              height={35}
-              className="object-contain w-[90px] lg:w-[100px] transition-transform hover:scale-105"
-            />
-          </Link>
+         <Link href="/" className="mt-1">
+  <Image
+    src="/Logo.png"
+    alt="Logo"
+    width={100}
+    height={35}
+    className="object-contain w-[90px] lg:w-[100px] transition-transform hover:scale-105"
+  />
+</Link>
 
           {/* Desktop Menu */}
           <ul className="hidden lg:flex items-center gap-8 text-[15px] font-semibold uppercase text-black">

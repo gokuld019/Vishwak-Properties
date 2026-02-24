@@ -27,7 +27,8 @@ import {
   Download,
   User,
   ChevronDown,
-  Send
+  Send, 
+  CheckCircle
 } from "lucide-react";
 import * as THREE from "three";
 import { motion } from "framer-motion";
@@ -49,8 +50,10 @@ export default function ProjectDetailsPage({ projectId }) {
   const [showRouteMap, setShowRouteMap] = useState(false);
   const [downloadAfterEnquiry, setDownloadAfterEnquiry] = useState(false);
   const [projectStatus, setProjectStatus] = useState(null); // 'ongoing' or 'completed'
-const [projectOptions, setProjectOptions] = useState([]);
-const [isClient, setIsClient] = useState(false);
+  const [projectOptions, setProjectOptions] = useState([]);
+  const [isClient, setIsClient] = useState(false);
+  const [sitePlanSubTab, setSitePlanSubTab] = useState("sitePlan"); // "sitePlan" | "plotArea"
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   // API Data States
   const [projectData, setProjectData] = useState(null);
@@ -78,8 +81,8 @@ const [isClient, setIsClient] = useState(false);
   const [stats, setStats] = useState([]); // for card list rendering
   const [statsRaw, setStatsRaw] = useState(null);
   const [heroImage, setHeroImage] = useState("");
- const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
- const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
+  const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+  const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
 
   const [paymentEnquiry, setPaymentEnquiry] = useState({
     fullName: "",
@@ -89,14 +92,14 @@ const [isClient, setIsClient] = useState(false);
     amount: "",
   });
 
- const [formData, setFormData] = useState({
-  name: "",
-  email: "",
-  phone: "",
-  inquiry: "",
-  projectId: "",
-  message: "",
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    inquiry: "",
+    projectId: "",
+    message: "",
+  });
 
   const [brochureUrl, setBrochureUrl] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -120,6 +123,8 @@ const [isClient, setIsClient] = useState(false);
   const rendererRef = useRef(null);
   const sphereRef = useRef(null);
   const animationFrameRef = useRef(null);
+  const observerRef = useRef(null); // for intersection observer
+  const headerRef = useRef(null); // to measure sticky header height
 
   // ------------------------
   // CONSTANTS
@@ -137,52 +142,63 @@ const [isClient, setIsClient] = useState(false);
   };
 
   const allTabs = [
-  { id: "overview", label: "OVERVIEW" },
-  { id: "why", label: "WHY" },
-  { id: "location", label: "LOCATION HIGHLIGHTS" },
-  { id: "floor", label: "FLOOR PLANS" },
-  { id: "amenities", label: "AMENITIES" },
-  { id: "construction", label: "CONSTRUCTION UPDATES" },
-  { id: "price", label: "PRICE LIST" },
-  { id: "gallery", label: "GALLERY" }, // ✅ add this
-];
+    { id: "overview", label: "OVERVIEW" },
+    { id: "why", label: "WHY" },
+    { id: "location", label: "LOCATION HIGHLIGHTS" },
+    { id: "floor", label: "FLOOR PLANS" },
+    { id: "siteplan", label: "SITE PLAN & PLOT AREA STATEMENT" },
+    { id: "amenities", label: "AMENITIES" },
+    { id: "price", label: "PRICE LIST" },
+    { id: "gallery", label: "GALLERY" },
+  ];
 
+  // ------------------------
+  // FIX 1: Responsive sticky offset helper
+  // Returns correct pixel offset based on screen width
+  // ------------------------
+  const getStickyOffset = () => {
+    if (typeof window === "undefined") return 157;
+    if (window.innerWidth < 640) return 100;
+    if (window.innerWidth < 768) return 120;
+    return 157;
+  };
 
   // ------------------------
   // HELPER FUNCTIONS
   // ------------------------
-// ✅ Detect Plot Project (SAFE) - Updated to catch more variations
-// ✅ Detect Plot Project (SAFE) - Updated to catch more variations
-const isPlotProject = Boolean(
-  projectData?.type &&
-  (projectData.type.toLowerCase().includes("plots") || 
-   projectData.type.toLowerCase().includes("plot") ||
-   projectData.type.toLowerCase().includes("land"))
-);
+  const isPlotProject = Boolean(
+    projectData?.type &&
+    (projectData.type.toLowerCase().includes("plots") ||
+      projectData.type.toLowerCase().includes("plot") ||
+      projectData.type.toLowerCase().includes("land"))
+  );
 
   // Filter tabs based on project status
- const getFilteredTabs = () => {
-  let tabs = [...allTabs];
+  const getFilteredTabs = () => {
+    let tabs = [...allTabs];
 
-  // Remove floor plans for plot projects
-  if (isPlotProject) {
-    tabs = tabs.filter(tab => tab.id !== "floor");
-  }
+    // Remove floor plans for plot projects
+    if (isPlotProject) {
+      tabs = tabs.filter(tab => tab.id !== "floor");
+    } else {
+      // Remove site plan for non-plot projects
+      tabs = tabs.filter(tab => tab.id !== "siteplan");
+    }
 
-  // Remove construction & price for completed projects
-  if (projectStatus === "completed") {
-    tabs = tabs.filter(
-      tab => !["construction", "price"].includes(tab.id)
-    );
-  }
+    // Remove construction & price for completed projects
+    if (projectStatus === "completed") {
+      tabs = tabs.filter(
+        tab => !["construction", "price"].includes(tab.id)
+      );
+    }
 
-  return tabs;
-};
+    return tabs;
+  };
 
   // Get status badge styling
   const getStatusBadge = () => {
     if (!projectStatus) return null;
-    
+
     const statusConfig = {
       ongoing: {
         text: '🏗️ ONGOING',
@@ -195,10 +211,10 @@ const isPlotProject = Boolean(
         textColor: 'text-white'
       }
     };
-    
+
     const config = statusConfig[projectStatus];
     if (!config) return null;
-    
+
     return (
       <div className={`${config.bgColor} ${config.textColor} px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg`}>
         {config.text}
@@ -276,31 +292,30 @@ const isPlotProject = Boolean(
   // ------------------------
 
   // Brochure fetch
- useEffect(() => {
-  if (!projectId) return;
+  useEffect(() => {
+    if (!projectId) return;
 
-  const loadBrochure = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/brochure/${projectId}`);
-      const data = await res.json();
+    const loadBrochure = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/brochure/${projectId}`);
+        const data = await res.json();
 
-      console.log("BROCHURE API:", data);
+        console.log("BROCHURE API:", data);
 
-      // ✅ IMPORTANT FIX HERE
-      if (data.fileUrl) {
-        setBrochureUrl(`${Imagebase}${data.fileUrl}`);
+        if (data.fileUrl) {
+          setBrochureUrl(`${Imagebase}${data.fileUrl}`);
+        }
+
+        if (data.thumbnailUrl) {
+          setThumbnailUrl(`${Imagebase}${data.thumbnailUrl}`);
+        }
+      } catch (err) {
+        console.error("Brochure fetch error:", err);
       }
+    };
 
-      if (data.thumbnailUrl) {
-        setThumbnailUrl(`${Imagebase}${data.thumbnailUrl}`);
-      }
-    } catch (err) {
-      console.error("Brochure fetch error:", err);
-    }
-  };
-
-  loadBrochure();
-}, [projectId]);
+    loadBrochure();
+  }, [projectId]);
 
   // Handle form changes
   const handleChange = (e) => {
@@ -312,40 +327,51 @@ const isPlotProject = Boolean(
 
 
   useEffect(() => {
-  if (!formData.inquiry) {
-    setProjectOptions([]);
-    return;
-  }
-
-  const fetchProjects = async () => {
-    try {
-      const res = await fetch(
-        `${API_BASE}/project-details/by-category?category=${formData.inquiry}`
-      );
-
-      const data = await res.json();
-
-      if (Array.isArray(data)) {
-        setProjectOptions(data);
-      } else {
-        setProjectOptions([]);
-      }
-    } catch (err) {
-      console.error("Project fetch error:", err);
-      setProjectOptions([]);
+  const updateHeaderHeight = () => {
+    // Adjust selector to match your actual fixed header (e.g., 'header', '.navbar', etc.)
+    const header = document.querySelector('header');
+    if (header) {
+      setHeaderHeight(header.offsetHeight);
+    } else {
+      setHeaderHeight(0);
     }
   };
-
-  fetchProjects();
-}, [formData.inquiry]);
-
-
-
-  useEffect(() => {
-  setIsClient(true);
+  updateHeaderHeight();
+  window.addEventListener('resize', updateHeaderHeight);
+  return () => window.removeEventListener('resize', updateHeaderHeight);
 }, []);
 
+  useEffect(() => {
+    if (!formData.inquiry) {
+      setProjectOptions([]);
+      return;
+    }
 
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/project-details/by-category?category=${formData.inquiry}`
+        );
+
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setProjectOptions(data);
+        } else {
+          setProjectOptions([]);
+        }
+      } catch (err) {
+        console.error("Project fetch error:", err);
+        setProjectOptions([]);
+      }
+    };
+
+    fetchProjects();
+  }, [formData.inquiry]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Price list fetch
   useEffect(() => {
@@ -561,15 +587,15 @@ const isPlotProject = Boolean(
 
         // ---- PROJECT DETAILS ----
         const detailsRes = await fetch(`${API_BASE}/project-details/${numericId}`);
-        
+
         if (detailsRes.ok) {
           const detailsData = await detailsRes.json();
           console.log("Project details API response:", detailsData);
-          
+
           // Set project data and status
           setProjectData(detailsData || {});
           setProjectStatus(detailsData.status || 'ongoing'); // Get status from backend
-          
+
           // Also update statsRaw if needed
           if (detailsData.stats) {
             setStatsRaw(detailsData.stats);
@@ -594,8 +620,8 @@ const isPlotProject = Boolean(
           const points = Array.isArray(whyData)
             ? whyData
             : Array.isArray(whyData.data)
-            ? whyData.data
-            : [];
+              ? whyData.data
+              : [];
 
           console.log("WHY POINTS parsed:", points);
           setWhyPoints(points);
@@ -756,8 +782,10 @@ const isPlotProject = Boolean(
     const onPointerMove = (event) => {
       if (!isUserInteracting) return;
 
-      const clientX = event.clientX || event.touches[0].clientX;
-      const clientY = event.clientY || event.touches[0].clientY;
+      const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+      const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+
+      if (!clientX || !clientY) return;
 
       lon = (onPointerDownMouseX - clientX) * 0.1 + onPointerDownLon;
       lat = (clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
@@ -776,12 +804,32 @@ const isPlotProject = Boolean(
       camera.updateProjectionMatrix();
     };
 
+    // FIX 2: Handle pinch-to-zoom on mobile for 360 viewer
+    let lastTouchDistance = null;
+    const onTouchMove = (event) => {
+      if (event.touches.length === 2) {
+        const dx = event.touches[0].clientX - event.touches[1].clientX;
+        const dy = event.touches[0].clientY - event.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (lastTouchDistance !== null) {
+          const delta = lastTouchDistance - distance;
+          const fov = camera.fov + delta * 0.1;
+          camera.fov = Math.max(30, Math.min(90, fov));
+          camera.updateProjectionMatrix();
+        }
+        lastTouchDistance = distance;
+      } else {
+        lastTouchDistance = null;
+        onPointerMove(event);
+      }
+    };
+
     const container = canvasRef.current;
     container.addEventListener("mousedown", onPointerDown);
     container.addEventListener("mousemove", onPointerMove);
     container.addEventListener("mouseup", onPointerUp);
-    container.addEventListener("touchstart", onPointerDown);
-    container.addEventListener("touchmove", onPointerMove);
+    container.addEventListener("touchstart", onPointerDown, { passive: true });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
     container.addEventListener("touchend", onPointerUp);
     container.addEventListener("wheel", onWheel, { passive: false });
 
@@ -815,16 +863,13 @@ const isPlotProject = Boolean(
 
     window.addEventListener("resize", handleResize);
 
-
-
-
     return () => {
       window.removeEventListener("resize", handleResize);
       container.removeEventListener("mousedown", onPointerDown);
       container.removeEventListener("mousemove", onPointerMove);
       container.removeEventListener("mouseup", onPointerUp);
       container.removeEventListener("touchstart", onPointerDown);
-      container.removeEventListener("touchmove", onPointerMove);
+      container.removeEventListener("touchmove", onTouchMove);
       container.removeEventListener("touchend", onPointerUp);
       container.removeEventListener("wheel", onWheel);
 
@@ -839,6 +884,56 @@ const isPlotProject = Boolean(
       if (texture) texture.dispose();
     };
   }, [showCinematic360, current360Image]);
+
+  // ------------------------
+  // FIX 3: Responsive IntersectionObserver for active tab
+  // Uses dynamic rootMargin based on screen size
+  // ------------------------
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    const timer = setTimeout(() => {
+      const sections = document.querySelectorAll('section[id^="section-"]');
+      if (!sections.length) return;
+
+      // Responsive top offset for observer
+      const topOffset = typeof window !== "undefined"
+        ? window.innerWidth < 640 ? "-100px"
+          : window.innerWidth < 768 ? "-120px"
+            : "-157px"
+        : "-157px";
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          let bestEntry = null;
+          entries.forEach((entry) => {
+            if (
+              entry.isIntersecting &&
+              (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio)
+            ) {
+              bestEntry = entry;
+            }
+          });
+          if (bestEntry) {
+            const id = bestEntry.target.id.replace("section-", "");
+            setActiveTab(id);
+          }
+        },
+        {
+          threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+          rootMargin: `${topOffset} 0px -40% 0px`,
+        }
+      );
+
+      sections.forEach((section) => observer.observe(section));
+      observerRef.current = observer;
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [projectStatus, isPlotProject]);
 
   // ------------------------
   // EVENT HANDLERS
@@ -897,7 +992,6 @@ const isPlotProject = Boolean(
     setShowRouteMap(true);
   };
 
- 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -999,167 +1093,176 @@ const isPlotProject = Boolean(
     }
   };
 
+  // ✅ HERO IMAGE SAFE FALLBACK
+  const desktopHero =
+    projectData?.heroImageDesktop
+      ? `${Imagebase}${projectData.heroImageDesktop}`
+      : "";
 
-  // ✅ HERO IMAGE SAFE FALLBACK (CORRECT PLACE)
-const desktopHero =
-  projectData?.heroImageDesktop
-    ? `${Imagebase}${projectData.heroImageDesktop}`
-    : "";
-
-const mobileHero =
-  projectData?.heroImageMobile
-    ? `${Imagebase}${projectData.heroImageMobile}`
-    : desktopHero;
+  const mobileHero =
+    projectData?.heroImageMobile
+      ? `${Imagebase}${projectData.heroImageMobile}`
+      : desktopHero;
 
   // ------------------------
   // RENDER
   // ------------------------
- if (loading) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-500" />
-        <p className="mt-4 text-gray-600">Loading project details...</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-500" />
+          <p className="mt-4 text-gray-600">Loading project details...</p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-/* ======================================================
-   ✅ COMPLETED PROJECT VIEW
-====================================================== */
-if (projectStatus === "completed") {
-  return (
-  <div className="min-h-screen">
-      {/* ================= HERO / BANNER ================= */}
-    <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh]">
-  <div className="absolute inset-0">
+  /* ======================================================
+     ✅ COMPLETED PROJECT VIEW
+  ====================================================== */
+  if (projectStatus === "completed") {
+    return (
+      <div className="min-h-screen">
+        {/* ================= HERO / BANNER ================= */}
+        <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh]">
+          <div className="absolute inset-0">
+            {/* DESKTOP */}
+            <img
+              src={
+                projectData?.heroImageDesktop
+                  ? `${Imagebase}${projectData.heroImageDesktop}`
+                  : ""
+              }
+              className="hidden md:block w-full h-full object-cover"
+              alt="Project Banner Desktop"
+            />
 
-    {/* DESKTOP */}
-    <img
-      src={
-        projectData?.heroImageDesktop
-          ? `${Imagebase}${projectData.heroImageDesktop}`
-          : ""
-      }
-      className="hidden md:block w-full h-full object-cover"
-      alt="Project Banner Desktop"
-    />
+            {/* MOBILE */}
+            <img
+              src={
+                projectData?.heroImageMobile
+                  ? `${Imagebase}${projectData.heroImageMobile}`
+                  : projectData?.heroImageDesktop
+                    ? `${Imagebase}${projectData.heroImageDesktop}`
+                    : ""
+              }
+              className="block md:hidden w-full h-full"
+              alt="Project Banner Mobile"
+            />
 
-    {/* MOBILE */}
-    <img
-      src={
-        projectData?.heroImageMobile
-          ? `${Imagebase}${projectData.heroImageMobile}`
-          : projectData?.heroImageDesktop
-          ? `${Imagebase}${projectData.heroImageDesktop}`
-          : ""
-      }
-      className="block md:hidden w-full h-full"
-      alt="Project Banner Mobile"
-    />
-
-    <div className="absolute inset-0" />
-  </div>
-</section>
-
-
-      {/* ================= COMPLETED CONTENT ================= */}
-      <section className="relative w-full bg-gradient-to-b from-gray-200 to-white py-16 sm:py-24 overflow-hidden">
-        <div className="absolute right-0 top-0 h-full opacity-20 pointer-events-none select-none">
-          <img
-            src="/sketchbg.png"
-            alt="Decorative Shape"
-            className="h-full w-auto object-contain"
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-light leading-tight">
-            <span className="text-yellow-500">Successfully Delivered.</span>
-            <br />
-            <span className="text-black">Quality Homes. Happy Residents.</span>
-          </h2>
-
-          <p className="mt-6 sm:mt-10 text-lg sm:text-xl font-bold text-gray-900">
-            A SUCCESSFULLY COMPLETED PROJECT BY Vishwak Properties
-          </p>
-
-          <p className="mt-4 inline-block bg-yellow-500 text-black font-bold px-4 py-3 text-sm sm:text-lg">
-            WHERE DREAMS BECOME REALITY AND FAMILIES CREATE MEMORIES.
-          </p>
-
-          <div className="mt-8 text-gray-700 text-base sm:text-lg leading-relaxed max-w-4xl">
-            This project has been successfully completed and all units are now
-            occupied. Residents are enjoying premium amenities, excellent
-            connectivity, and a vibrant community.
-            <br /><br />
-            Interested in similar quality homes? Explore our ongoing projects
-            to find your perfect home.
+            <div className="absolute inset-0" />
           </div>
-        </div>
-      </section>
+        </section>
 
-     
+        {/* ================= COMPLETED CONTENT ================= */}
+        <section className="relative w-full bg-gradient-to-b from-gray-200 to-white py-16 sm:py-24 overflow-hidden">
+          <div className="absolute right-0 top-0 h-full opacity-20 pointer-events-none select-none">
+            <img
+              src="/sketchbg.png"
+              alt="Decorative Shape"
+              className="h-full w-auto object-contain"
+            />
+          </div>
 
-    </div>
-  );
-}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-light leading-tight">
+              <span className="text-yellow-500">Successfully Delivered.</span>
+              <br />
+              <span className="text-black">Quality Homes. Happy Residents.</span>
+            </h2>
 
+            <p className="mt-6 sm:mt-10 text-lg sm:text-xl font-bold text-gray-900">
+              A SUCCESSFULLY COMPLETED PROJECT BY Vishwak Properties
+            </p>
+
+            <p className="mt-4 inline-block bg-yellow-500 text-black font-bold px-4 py-3 text-sm sm:text-lg">
+              WHERE DREAMS BECOME REALITY AND FAMILIES CREATE MEMORIES.
+            </p>
+
+            <div className="mt-8 text-gray-700 text-base sm:text-lg leading-relaxed max-w-4xl">
+              This project has been successfully completed and all units are now
+              occupied. Residents are enjoying premium amenities, excellent
+              connectivity, and a vibrant community.
+              <br /><br />
+              Interested in similar quality homes? Explore our ongoing projects
+              to find your perfect home.
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ------------------------
+  // MAIN RENDER (ONGOING PROJECTS)
+  // ------------------------
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Updated Header - Non-Sticky */}
       <header className="absolute top-0 left-0 right-0"></header>
 
       {/* Hero Section */}
-    <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh]">
-  <div className="absolute inset-0">
+      <section className=" h-full w-[100%]">
+        <div className="">
+          {/* Desktop Banner */}
+          <img
+            src={desktopHero}
+            className="hidden md:block w-full h-full object-cover"
+            alt="Project Banner Desktop"
+          />
 
-    {/* Desktop Banner */}
-    <img
-      src={desktopHero}
-      className="hidden md:block w-full h-full object-cover"
-      alt="Project Banner Desktop"
-    />
+          {/* Mobile Banner */}
+          <img
+            src={mobileHero}
+            className="block md:hidden w-full h-full object-cover"
+            alt="Project Banner Mobile"
+          />
 
-    {/* Mobile Banner */}
-    <img
-      src={mobileHero}
-      className="block md:hidden w-full h-full object-cover"
-      alt="Project Banner Mobile"
-    />
-
-    {/* Overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-  </div>
-</section>
-
-      {/* Navigation Tabs */}
-      <section className="sticky top-0 z-40 bg-white shadow-md">
-        <div className="max-w-7xl mx-auto">
-       <div className="flex justify-around overflow-x-auto scrollbar-hide">
-              {getFilteredTabs().map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "text-yellow-600 border-b-2 border-yellow-600 bg-yellow-50"
-                    : "text-gray-600 hover:text-yellow-600 hover:bg-gray-50"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Tab Content */}
-      <section className="py-10 sm:py-14 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
-          {/* OVERVIEW TAB */}
-          {activeTab === "overview" && (
+      {/* FIX 4: Navigation Tabs - Sticky with correct responsive top offset and z-index */}
+      {/* Fixed: removed trailing semicolon in className, fixed z-5→z-30, made top responsive */}
+    
+       <section
+  ref={headerRef}
+  className="sticky z-30 bg-white border-b border-gray-200 shadow-sm w-full"
+  style={{ top: headerHeight, willChange: 'transform' }}
+>
+  <div className="w-full max-w-7xl mx-auto overflow-x-auto">
+    <div className="flex justify-around scrollbar-hide">
+      {getFilteredTabs().map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => {
+            setActiveTab(tab.id);
+            const el = document.getElementById(`div-${tab.id}`);
+            if (el) {
+              const offset = getStickyOffset(); // this should match the actual sticky height
+              const top = el.getBoundingClientRect().top + window.scrollY - offset;
+              window.scrollTo({ top, behavior: 'smooth' });
+            }
+          }}
+          className={`cursor-pointer flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm transition-all duration-300 ${
+            activeTab === tab.id
+              ? 'text-[#67a139] border-b-2 border-green-600 bg-green-50'
+              : 'text-gray-600 hover:text-white hover:bg-[#67a139]'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  </div>
+</section>
+
+      {/* Tab Content - All Sections Rendered Sequentially */}
+      <section className="py-10 sm:py-14 md:py-16 ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 ">
+          {/* OVERVIEW SECTION */}
+          {/* FIX 6: scroll-mt increased for mobile to account for sticky nav height */}
+          <section id="section-overview" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px]">
             <div className="space-y-20">
               {/* Main Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-14 md:gap-16 items-start">
@@ -1167,9 +1270,8 @@ if (projectStatus === "completed") {
                 <div className="relative">
                   <div className="absolute -top-4 -left-4 w-16 sm:w-20 h-16 sm:h-20 bg-green-100 rounded-full blur-2xl opacity-40"></div>
 
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl text-gray-900 leading-tight mb-4">
                     {projectData?.topTitle || "Premium 2 & 3 BHK"} <br />
-                   
                   </h1>
 
                   <p className="text-lg sm:text-xl text-gray-700 mb-4">
@@ -1182,180 +1284,153 @@ if (projectStatus === "completed") {
                   </p>
                 </div>
 
-{/* RIGHT SIDE – Info Card */}
-<div className="bg-white rounded-3xl shadow-xl border border-gray-100
-                p-5 sm:p-7 md:p-8 lg:p-10 ">
+                {/* RIGHT SIDE – Info Card */}
+                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5 sm:p-7 md:p-8 lg:p-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-y-6 sm:gap-y-8 gap-x-6 sm:gap-x-10">
+                    {/* TYPE */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        TYPE
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {projectData?.type || "NA"}
+                      </p>
+                    </div>
 
-  <div
-    className="
-      grid 
-      grid-cols-1 
-      sm:grid-cols-2 
-      lg:grid-cols-2
-      gap-y-6 sm:gap-y-8 
-      gap-x-6 sm:gap-x-10
-    "
-  >  
+                    {/* DEVELOPMENT SIZE */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        DEVELOPMENT SIZE
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {projectData?.developmentSize || "NA"}
+                      </p>
+                    </div>
 
-    {/* TYPE */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        TYPE
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900">
-        {projectData?.type || "NA"}
-      </p>
-    </div>
+                    {/* NO OF UNITS */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        NO. OF UNITS
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {projectData?.numberOfUnits || "NA"}
+                      </p>
+                    </div>
 
-    {/* DEVELOPMENT SIZE */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        DEVELOPMENT SIZE
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900">
-        {projectData?.developmentSize || "NA"}
-      </p>
-    </div>
+                    {/* PRICE PER SQFT */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        PRICE / SQ.FT
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {projectData?.pricePerSqft
+                          ? `₹ ${projectData.pricePerSqft} / Sq.Ft`
+                          : "NA"}
+                      </p>
+                    </div>
 
-    {/* NO OF UNITS */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        NO. OF UNITS
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900">
-        {projectData?.numberOfUnits || "NA"}
-      </p>
-    </div>
+                    {/* PROJECT STATUS */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        PROJECT STATUS
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {projectData?.completionPercentage
+                          ? `${projectData.completionPercentage}% Completed`
+                          : projectStatus === "completed"
+                            ? "Completed"
+                            : "NA"}
+                      </p>
+                    </div>
 
-    {/* PRICE PER SQFT */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        PRICE / SQ.FT
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900">
-        {projectData?.pricePerSqft
-          ? `₹ ${projectData.pricePerSqft} / Sq.Ft`
-          : "NA"}
-      </p>
-    </div>
+                    {/* RERA NUMBER */}
+                    <div className="space-y-1">
+                      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
+                        RERA NUMBER
+                      </h3>
+                      <p className="text-base sm:text-lg font-medium text-gray-900 break-words">
+                        {projectData?.reraNumber || "NA"}
+                      </p>
+                    </div>
+                  </div>
 
-    {/* PROJECT STATUS */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        PROJECT STATUS
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900">
-        {projectData?.completionPercentage
-          ? `${projectData.completionPercentage}% Completed`
-          : projectStatus === "completed"
-          ? "Completed"
-          : "NA"}
-      </p>
-    </div>
+                  {/* FIX 7: Action buttons - improved mobile wrapping */}
+                  <div className="flex items-center gap-3 sm:gap-4 pt-[30px] pb-[20px] pl-[5px] pr-[10px] flex-wrap">
+                    {/* Cinematic 360 */}
+                    <button
+                      onClick={openCinematic360}
+                      className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-[#67a139] text-white shadow-lg hover:scale-105 transition-all"
+                    >
+                      <Camera className="w-4 sm:w-5 h-4 sm:h-5" />
+                      Cinematic 360°
+                    </button>
 
-    {/* RERA NUMBER */}
-    <div className="space-y-1">
-      <h3 className="text-[11px] sm:text-xs font-semibold tracking-widest text-gray-500">
-        RERA NUMBER
-      </h3>
-      <p className="text-base sm:text-lg font-medium text-gray-900 break-words">
-        {projectData?.reraNumber || "NA"}
-      </p>
-    </div>
+                    {/* Route Map */}
+                    <button
+                      onClick={openRouteMap}
+                      className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-white text-gray-800 border border-gray-200 shadow-sm hover:border-gray-300 hover:scale-105 transition-all"
+                    >
+                      <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-600" />
+                      Route Map
+                    </button>
 
-  </div>
+                    {/* Download Brochure */}
+                    <button
+                      onClick={() => {
+                        if (!brochureUrl) {
+                          Swal.fire({
+                            icon: "info",
+                            title: "Brochure not available",
+                          });
+                          return;
+                        }
 
-
- 
-
-
-                 <div className="flex items-center gap-3 sm:gap-4 pt-[30px] pb-[20px] pl-[5px] pr-[10px] overflow-x-auto whitespace-nowrap scrollbar-hide flex flex-wrap">
-
-  {/* Cinematic 360 */}
-  <button
-    onClick={openCinematic360}
-    className="flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold
-      bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg
-       hover:scale-105 transition-all"
-  >
-    <Camera className="w-4 sm:w-5 h-4 sm:h-5" />
-    Cinematic 360°
-  </button>
-
-  {/* Route Map */}
-  <button
-    onClick={openRouteMap}
-    className="flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold
-      bg-white text-gray-800 border border-gray-200 shadow-sm
-      hover:border-gray-300 hover:scale-105 transition-all"
-  >
-    <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-600" />
-    Route Map
-  </button>
-
-  {/* Download Brochure */}
-  <button
-    onClick={() => {
-      if (!brochureUrl) {
-        Swal.fire({
-          icon: "info",
-          title: "Brochure not available",
-        });
-        return;
-      }
-
-      setDownloadAfterEnquiry(true);
-      setShowEnquiry(true);
-    }}
-    className="flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold
-      bg-yellow-500 text-black shadow-lg
-      hover:bg-yellow-600 hover:scale-105 transition-all"
-  >
-    <Download className="w-4 sm:w-5 h-4 sm:h-5" />
-    Brochure
-  </button>
-
-</div>
+                        setDownloadAfterEnquiry(true);
+                        setShowEnquiry(true);
+                      }}
+                      className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-yellow-500 text-black shadow-lg hover:bg-yellow-600 hover:scale-105 transition-all"
+                    >
+                      <Download className="w-4 sm:w-5 h-4 sm:h-5" />
+                      Brochure
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Features Section */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-10 pt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-10">
                 {[
                   {
                     img: projectData?.image1
                       ? `${Imagebase}${projectData.image1}`
                       : "/interior1.webp",
-                    label: "DELIVERING ONLY<br/>THE BEST",
+                    label: "Kilambakkam Bus Terminal",
                   },
                   {
                     img: projectData?.image2
                       ? `${Imagebase}${projectData.image2}`
                       : "/interior2.webp",
-                    label: "AFFORDABLE<br/>HOMES",
+                    label: "Shriram Gateway",
                   },
                   {
                     img: projectData?.image3
                       ? `${Imagebase}${projectData.image3}`
                       : "/interior3.webp",
-                    label: "TOP CLASS<br/>AMENITIES",
+                    label: "Crescent College",
                   },
                   {
                     img: projectData?.image4
                       ? `${Imagebase}${projectData.image4}`
                       : "/interior4.webp",
-                    label: "ECO-FRIENDLY<br/>PROJECTS",
+                    label: "Vandalur Railway Station",
                   },
                 ].map((feat, i) => (
                   <div
                     key={i}
-                    className="flex flex-col items-center text-center space-y-3 
-                        hover:scale-105 transition-all duration-300 group"
-                  >
+                    className="flex flex-col items-center text-center space-y-3 hover:scale-105 transition-all duration-300 group cursor-pointer"                  >
                     <img
                       src={feat.img}
-                      className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 object-contain
-                          group-hover:drop-shadow-xl transition"
+                      className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 object-contain group-hover:drop-shadow-xl transition"
                     />
                     <p
                       className="font-semibold text-black text-xs sm:text-sm leading-tight"
@@ -1365,15 +1440,15 @@ if (projectStatus === "completed") {
                 ))}
               </div>
             </div>
-          )}
+          </section>
 
-          {/* WHY TAB */}
-          {activeTab === "why" && (
-            <div className="space-y-16 py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
-              <div className="text-center space-y-4 px-4">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+          {/* WHY SECTION */}
+          <section id="section-why" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
+            <div className="space-y-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
+              <div className="text-center space-y-4 px-4 mb-4">
+                <h2 className="text-3xl md:text-5xl text-gray-900 leading-tight">
                   Why Choose{" "}
-                  <span className="text-yellow-600">{projectData?.name}?</span>
+                  <span className="text-[#67a139]">{projectData?.name}?</span>
                 </h2>
                 <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
                   Discover what makes {projectData?.name} your perfect investment for
@@ -1381,10 +1456,7 @@ if (projectStatus === "completed") {
                 </p>
               </div>
 
-              <div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
-                    gap-6 md:gap-8 px-4 md:px-0"
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4 md:px-0">
                 {whyPoints.length === 0 ? (
                   <p className="text-center text-gray-500 col-span-3">
                     No Why Points added for this project yet.
@@ -1393,20 +1465,15 @@ if (projectStatus === "completed") {
                   whyPoints.map((item, index) => (
                     <div
                       key={index}
-                      className="group bg-white/70 backdrop-blur-md border border-gray-200/50
-                          p-6 md:p-8 rounded-3xl transition-all duration-500
-                          hover:-translate-y-2 hover:shadow-2xl hover:bg-white"
+                      className="cursor-pointer group bg-white/70 backdrop-blur-md border border-gray-200/50 p-6 md:p-8 rounded-3xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:bg-white"
                     >
-                      <div className="text-yellow-600 mb-4 md:mb-6 group-hover:scale-110 transition-transform">
+                      <div className="text-[#67a139] mb-4 md:mb-6 group-hover:scale-110 transition-transform">
                         {iconMap[item.iconKey] || (
                           <CheckCircle2 className="w-10 h-10" />
                         )}
                       </div>
 
-                      <h3
-                        className="text-lg md:text-xl font-semibold text-gray-900 mb-2 
-                            group-hover:text-yellow-600 transition-colors"
-                      >
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors">
                         {item.title}
                       </h3>
 
@@ -1418,20 +1485,20 @@ if (projectStatus === "completed") {
                 )}
               </div>
             </div>
-          )}
+          </section>
 
-          {/* LOCATION TAB */}
-          {activeTab === "location" && (
-            <div className="space-y-20 py-16 md:py-20 relative px-4 md:px-0">
+          {/* LOCATION SECTION */}
+          <section id="section-location" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
+            <div className="space-y-20 py-5 md:py-5 relative px-4 md:px-0">
               <div className="absolute top-10 left-0 w-48 h-48 md:w-64 md:h-64 bg-green-300 opacity-20 blur-[100px] rounded-full"></div>
-              <div className="absolute bottom-20 right-0 w-48 h-48 md:w-64 md:h-64 bg-yellow-300 opacity-20 blur-[100px] rounded-full"></div>
+              <div className="absolute bottom-20 right-0 w-48 h-48 md:w-64 md:h-64 bg-green-300 opacity-20 blur-[100px] rounded-full"></div>
 
-              <div className="text-center relative">
+              <div className="text-center relative mb-8">
                 <motion.h2
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7 }}
-                  className="text-3xl md:text-5xl font-extrabold text-gray-900"
+                  className="text-3xl md:text-5xl text-gray-900"
                 >
                   Location Highlights
                 </motion.h2>
@@ -1461,8 +1528,7 @@ if (projectStatus === "completed") {
                         initial={{ opacity: 0, x: 40 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex justify-between items-center p-3 md:p-4 rounded-xl bg-white/70 
-                            backdrop-blur-xl border border-gray-100 shadow-md hover:shadow-lg transition cursor-pointer"
+                        className="flex justify-between items-center p-3 md:p-4 rounded-xl bg-white/70 backdrop-blur-xl border border-gray-100 shadow-md hover:shadow-lg transition cursor-pointer"
                       >
                         <div>
                           <div className="font-semibold text-sm md:text-base text-gray-900">
@@ -1484,25 +1550,24 @@ if (projectStatus === "completed") {
                   initial={{ opacity: 0, x: 40 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8 }}
-                  className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-yellow-100 space-y-5 md:space-y-6"
+                  className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-green-100 space-y-5 md:space-y-6"
                 >
                   <div className="flex items-center gap-3 md:gap-4 mb-2">
-                    <Navigation className="w-8 h-8 md:w-10 md:h-10 text-yellow-600" />
+                    <Navigation className="w-8 h-8 md:w-10 md:h-10 text-[#67a139]" />
                     <h3 className="text-xl md:text-2xl font-bold text-gray-900">
                       Nearby Facilities
                     </h3>
                   </div>
-                  <div className="grid gap-2 md:gap-3">
+                  <div className="grid gap-2 md:gap-5">
                     {facilities.map((item, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: 30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.07 }}
-                        className="flex items-center gap-2 md:gap-3 bg-white/80 p-2.5 md:p-3 shadow rounded-xl 
-                            border border-gray-100 hover:bg-yellow-50 transition cursor-pointer"
+                        className="flex items-center gap-2 md:gap-3 bg-white/80 p-2.5 md:p-3 shadow rounded-xl border border-gray-100 hover:bg-green-50 transition cursor-pointer"
                       >
-                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-yellow-600" />
+                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#67a139]" />
                         <span className="text-gray-700 text-sm md:text-base">
                           {item.name}
                         </span>
@@ -1511,27 +1576,26 @@ if (projectStatus === "completed") {
                   </div>
                 </motion.div>
               </div>
-
-             
             </div>
-          )}
+          </section>
 
-          {/* FLOOR PLANS TAB */}
-          {activeTab === "floor" && !isPlotProject && (
-            <div className="space-y-12 py-12">
-              <div className="text-center px-4">
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                  Floor Plans
-                </h2>
-                <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                  Choose from our carefully designed layouts to suit your lifestyle
-                </p>
-              </div>
+          {/* FLOOR PLANS SECTION */}
+          {!isPlotProject && (
+            <section id="section-floor" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
+              <div className="space-y-12 py-12">
+                <div className="text-center px-4">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                    Floor Plans
+                  </h2>
+                  <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                    Choose from our carefully designed layouts to suit your lifestyle
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
-                {(floorPlans.length > 0
-                  ? floorPlans
-                  : [
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
+                  {(floorPlans.length > 0
+                    ? floorPlans
+                    : [
                       {
                         id: 1,
                         type: "Studio",
@@ -1557,56 +1621,180 @@ if (projectStatus === "completed") {
                         image: "/floorplan.webp",
                       },
                     ]
-                ).map((plan, index) => (
-                  <div
-                    key={plan.id || index}
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
-                  >
-                    <div className="relative h-48 sm:h-56 md:h-52 bg-gray-100">
-                      <img
-                        src={
-                          plan.image
-                            ? plan.image.startsWith("http")
-                              ? plan.image
-                              : `${Imagebase}/${plan.image}`
-                            : "/floorplan.webp"
-                        }
-                        alt={`${plan.type} Floor Plan`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => openFloorPlan(plan)}
-                        className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition"
-                      >
-                        <Maximize2 className="w-4 h-4" />
-                      </button>
+                  ).map((plan, index) => (
+                    <div
+                      key={plan.id || index}
+                      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                    >
+                      <div className="relative h-48 sm:h-56 md:h-52 bg-gray-100">
+                        <img
+                          src={
+                            plan.image
+                              ? plan.image.startsWith("http")
+                                ? plan.image
+                                : `${Imagebase}/${plan.image}`
+                              : "/floorplan.webp"
+                          }
+                          alt={`${plan.type} Floor Plan`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => openFloorPlan(plan)}
+                          className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition"
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-900">
+                          {plan.type}
+                        </h3>
+                        <p className="text-yellow-600 font-semibold">
+                          {plan.area}
+                        </p>
+                        <button
+                          onClick={() => openFloorPlan(plan)}
+                          className="w-full mt-3 bg-yellow-500 text-gray-900 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition"
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-gray-900">
-                        {plan.type}
-                      </h3>
-                      <p className="text-yellow-600 font-semibold">
-                        {plan.area}
-                      </p>
-                      <button
-                        onClick={() => openFloorPlan(plan)}
-                        className="w-full mt-3 bg-yellow-500 text-gray-900 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition"
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* AMENITIES TAB */}
-          {activeTab === "amenities" && (
+          {/* SITE PLAN & PLOT AREA STATEMENT SECTION */}
+          {isPlotProject && (
+            <section id="section-siteplan" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
+              <div className="space-y-12 py-12 mt-0">
+
+                {/* Header */}
+                <div className="text-center px-4">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4">
+                    {projectData?.sitePlanHeading ? (
+                      projectData.sitePlanHeading
+                    ) : (
+                      <>
+                        <span className="text-yellow-500">Layout</span>{" "}
+                        <span className="text-gray-900">Plan</span>
+                      </>
+                    )}
+                  </h2>
+
+                  <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                    {projectData?.sitePlanDescription ||
+                      "Well-planned plots with sunlight, privacy and easy access for building your dream house"}
+                  </p>
+                </div>
+
+                {/* Sub-tab + Content Layout */}
+                {/* FIX 8: Site plan tabs - better mobile stacking */}
+                <div className="flex flex-col md:flex-row gap-6 px-4">
+
+                  {/* Left — Sub Tabs */}
+                  <div className="flex flex-row md:flex-col gap-3 md:gap-0 md:w-56 flex-shrink-0">
+
+                    {/* SITE PLAN tab */}
+                    <button
+                      onClick={() => setSitePlanSubTab("sitePlan")}
+                      className={`cursor-pointer relative text-left px-5 py-4 font-semibold text-sm tracking-wide transition-all duration-200 ${sitePlanSubTab === "sitePlan"
+                        ? "bg-[#67a139] text-white shadow-md"
+                        : "text-gray-500 hover:text-gray-800"
+                        }`}
+                    >
+                      SITE PLAN
+                      {sitePlanSubTab === "sitePlan" && (
+                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-700 rounded-r" />
+                      )}
+                    </button>
+
+                    <div className="hidden md:block w-full border-b border-gray-200 my-1" />
+
+                    {/* PLOT AREA STATEMENT tab */}
+                    <button
+                      onClick={() => setSitePlanSubTab("plotArea")}
+                      className={`cursor-pointer brelative text-left px-5 py-4 font-semibold text-sm tracking-wide transition-all duration-200 ${sitePlanSubTab === "plotArea"
+                        ? "bg-[#67a139] text-white shadow-md"
+                        : "text-gray-500 hover:text-gray-800"
+                        }`}
+                    >
+                      PLOT AREA STATEMENT
+                      {sitePlanSubTab === "plotArea" && (
+                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-700 rounded-r" />
+                      )}
+                    </button>
+
+                    <div className="hidden md:block w-px bg-gray-200 mx-5 mt-2 flex-1" />
+                  </div>
+
+                  {/* Right — Content Panel */}
+                  <div className="flex-1 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 min-h-[280px] sm:min-h-[380px] flex items-center justify-center">
+
+                    {/* SITE PLAN IMAGE */}
+                    {sitePlanSubTab === "sitePlan" ? (
+                      projectData?.sitePlanImage ? (
+                        <img
+                          src={`${Imagebase}${projectData.sitePlanImage}`}
+                          alt="Site Plan"
+                          className="w-full h-full object-contain max-h-[400px] sm:max-h-[520px] p-4 transition-all duration-300"
+                        />
+                      ) : (
+                        <div className="text-center text-gray-400 py-20 px-8">
+                          <p className="font-semibold text-gray-500 text-base">
+                            Site Plan Coming Soon
+                          </p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Contact us to get the latest layout details
+                          </p>
+                          <button
+                            onClick={() => setShowEnquiry(true)}
+                            className="mt-5 px-6 py-2 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition text-sm"
+                          >
+                            Enquire Now
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      /* PLOT AREA STATEMENT IMAGE */
+                      projectData?.plotAreaStatementImage ? (
+                        <img
+                          src={`${Imagebase}${projectData.plotAreaStatementImage}`}
+                          alt="Plot Area Statement"
+                          className="w-full h-full object-contain max-h-[400px] sm:max-h-[520px] p-4 transition-all duration-300"
+                        />
+                      ) : (
+                        <div className="text-center text-gray-400 py-20 px-8">
+                          <p className="font-semibold text-gray-500 text-base">
+                            Plot Area Statement Coming Soon
+                          </p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Detailed layout data will be available shortly
+                          </p>
+                          <button
+                            onClick={() => setShowEnquiry(true)}
+                            className="mt-5 px-6 py-2 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition text-sm"
+                          >
+                            Get Details
+                          </button>
+                        </div>
+                      )
+                    )}
+
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* AMENITIES SECTION */}
+          <section id="section-amenities" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
             <div className="space-y-12 py-12">
               {/* Header */}
               <div className="text-center px-4">
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4">
                   World Class Amenities
                 </h2>
                 <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
@@ -1617,20 +1805,26 @@ if (projectStatus === "completed") {
               {/* TEXT AMENITIES */}
               {amenityTextList.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-                  {amenityTextList.map((item, index) => (
-                    <div
-                      key={index}
-                      className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                        <span className="text-gray-900 font-semibold text-lg">
-                          {item.name || item}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+  {amenityTextList.map((item, index) => (
+    <div
+      key={index}
+      className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+    >
+      <div className="flex items-center gap-4">
+        
+        {/* Icon */}
+        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#67a139]/10">
+          <CheckCircle className="w-5 h-5 text-[#67a139]" />
+        </div>
+
+        {/* Text */}
+        <span className="text-gray-900 font-semibold text-lg">
+          {item.name || item}
+        </span>
+      </div>
+    </div>
+  ))}
+</div>
               ) : (
                 <p className="text-center text-gray-500">
                   No amenities added for this project yet.
@@ -1651,7 +1845,7 @@ if (projectStatus === "completed") {
                   return (
                     <div
                       key={index}
-                      className="relative h-56 sm:h-64 md:h-72 lg:h-80 rounded-2xl overflow-hidden"
+                      className="relative h-48 sm:h-64 md:h-72 lg:h-80 rounded-2xl overflow-hidden"
                     >
                       <img
                         src={src}
@@ -1663,444 +1857,251 @@ if (projectStatus === "completed") {
                 })}
               </div>
             </div>
-          )}
+          </section>
 
-          {/* SPECIFICATIONS TAB */}
-          {activeTab === "specifications" && (
-            <div className="space-y-12 py-12 px-4">
-              <div className="text-center">
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                  Quality Specifications
-                </h2>
-                <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-                  Built with premium materials and superior craftsmanship
-                </p>
-              </div>
+         {/* PRICE SECTION */}
+<section id="section-price" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px] mb-0">
+  <div className="space-y-12 px-4 sm:px-6 lg:px-8">
+    <div className="text-center mb-4">
+      <h2 className="text-3xl sm:text-4xl text-gray-900 mb-4 sm:mb-6">
+        {projectStatus === 'completed' ? 'Project Status' : 'Price List'}
+      </h2>
+      <p className="text-lg sm:text-xl text-gray-600">
+        {projectStatus === 'completed'
+          ? 'Information about this completed project'
+          : 'Transparent pricing for all unit types'}
+      </p>
+    </div>
 
-              {/* MAIN SPECIFICATIONS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                {(specifications.length > 0
-                  ? specifications
-                  : [
-                      {
-                        category: "Flooring",
-                        detail: "Vitrified tiles in living & bedrooms",
-                      },
-                      {
-                        category: "Kitchen",
-                        detail:
-                          "Granite counter with stainless steel sink",
-                      },
-                      {
-                        category: "Bathroom",
-                        detail:
-                          "Premium sanitaryware & CP fittings",
-                      },
-                      {
-                        category: "Doors",
-                        detail:
-                          "Main door - Teak wood frame with decorative laminate",
-                      },
-                      {
-                        category: "Windows",
-                        detail: "UPVC windows with mosquito mesh",
-                      },
-                      {
-                        category: "Electrical",
-                        detail:
-                          "Concealed copper wiring with modular switches",
-                      },
-                    ]
-                ).map((spec, index) => (
-                  <div
-                    key={index}
-                    className="bg-white p-6 md:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                  >
-                    <h3 className="text-lg md:text-xl font-bold text-yellow-600 mb-3">
-                      {spec.category}
-                    </h3>
-                    <p className="text-gray-700 text-sm md:text-base">
-                      {spec.detail}
-                    </p>
-                  </div>
-                ))}
-              </div>
+    {projectStatus === 'completed' ? (
+      // Completed project view — unchanged
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 md:p-12 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
+            <Building2 className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            Project Fully Sold Out!
+          </h3>
+          <p className="text-gray-600 text-lg mb-6">
+            All units in this completed project have been successfully sold and handed over to residents.
+          </p>
 
-              {/* ADDITIONAL FEATURES */}
-              <div className="bg-white rounded-2xl p-6 md:p-10 shadow-lg">
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-                  Additional Features
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                  {[
-                    "Fire fighting system as per NBC",
-                    "High speed elevators",
-                    "Video door phone",
-                    "Solar water heating",
-                    "Rain water harvesting",
-                    "Sewage treatment plant",
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-yellow-600" />
-                      <span className="text-gray-700 text-sm md:text-base">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {projectData?.totalUnits && (
+            <div className="mb-6">
+              <p className="text-gray-700 font-medium">
+                Total Units: <span className="text-blue-600 font-bold">{projectData.totalUnits}</span>
+              </p>
+              <p className="text-gray-600 text-sm mt-2">
+                All units are now occupied by happy homeowners.
+              </p>
             </div>
           )}
 
-          {/* CONSTRUCTION TAB */}
-          {activeTab === "construction" && (
-            <div className="space-y-12">
-              {/* Show different content for completed projects */}
-              {projectStatus === 'completed' ? (
-                <div className="text-center py-12 px-4">
-                  <div className="bg-green-50 border border-green-200 rounded-2xl p-8 md:p-12 max-w-2xl mx-auto">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
-                      <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h4 className="font-semibold text-gray-800 mb-2">Looking for available units?</h4>
+            <p className="text-gray-600">
+              Check out our ongoing projects for current availability and pricing.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowEnquiry(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md"
+          >
+            View Ongoing Projects
+          </button>
+        </div>
+      </div>
+    ) : (
+      // Price list for ongoing projects
+      <>
+        {loadingPrice && (
+          <p className="text-center text-gray-500 text-lg">Loading price list...</p>
+        )}
+        {priceError && (
+          <p className="text-center text-red-500 text-lg">{priceError}</p>
+        )}
+
+        <div className="max-w-4xl mx-auto space-y-8">
+
+          {/* ── MOBILE: Card layout (hidden on sm+) ── */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            {(priceList.length > 0
+              ? priceList
+              : [
+                  { unit: "Studio - 718 Sq.Ft", price: "₹45 Lakhs" },
+                  { unit: "1 BHK - 850 Sq.Ft", price: "₹55 Lakhs" },
+                  { unit: "2 BHK - 1150 Sq.Ft", price: "₹75 Lakhs" },
+                  { unit: "3 BHK - 1357 Sq.Ft", price: "₹90 Lakhs" },
+                ]
+            ).map((unit, index) => {
+              const label = unit.unit || "";
+              const [uType = "", uArea = ""] = label.split(" - ");
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden"
+                >
+                  {/* Green accent top strip */}
+                  <div className="h-1 w-full bg-[#67a139]" />
+
+                  <div className="p-4 flex items-center justify-between gap-3">
+                    {/* Left: type + area stacked */}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-gray-900 text-base leading-tight truncate">
+                        {uType}
+                      </p>
+                      {uArea ? (
+                        <p className="text-gray-500 text-xs mt-0.5">{uArea}</p>
+                      ) : null}
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                      Project Successfully Completed!
-                    </h3>
-                    <p className="text-gray-600 text-lg mb-6">
-                      All construction work has been finished and units have been handed over to residents.
-                    </p>
-                    <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-700 font-medium">
-                        {projectData?.completionDate 
-                          ? `Completed on: ${projectData.completionDate}`
-                          : 'Project completed successfully'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // Original construction updates for ongoing projects
-                <>
-                  {/* TITLE */}
-                  <div className="text-center px-4">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                      Construction Updates
-                    </h2>
-                    <p className="text-lg md:text-xl text-gray-600">
-                      Track the progress of your dream home
-                    </p>
-                  </div>
 
-                  {/* TIMELINE UPDATES */}
-                  <div className="max-w-5xl mx-auto px-4">
-                    <div className="space-y-10">
-                      {(constructionUpdates.length > 0
-                        ? constructionUpdates
-                        : [
-                            {
-                              date: "2024-01-15",
-                              update: "Foundation work completed",
-                              progress: 25,
-                            },
-                            {
-                              date: "2024-02-28",
-                              update: "Structure up to 5th floor completed",
-                              progress: 50,
-                            },
-                            {
-                              date: "2024-04-10",
-                              update: "Electrical and plumbing work in progress",
-                              progress: 70,
-                            },
-                            {
-                              date: "2024-05-20",
-                              update: "Interior work started",
-                              progress: 85,
-                            },
-                          ]
-                      ).map((item, index) => (
-                        <div key={index} className="flex gap-4 md:gap-6 w-full">
-                          {/* TIMELINE DOT + LINE */}
-                          <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-500 rounded-full"></div>
-                            {index <
-                              (constructionUpdates.length > 0
-                                ? constructionUpdates.length
-                                : 4) - 1 && (
-                              <div className="w-0.5 h-full bg-yellow-500/30 mt-1 md:mt-2"></div>
-                            )}
-                          </div>
-
-                          {/* CONTENT BOX */}
-                          <div className="flex-1 bg-white p-4 md:p-6 rounded-2xl shadow-md md:shadow-lg">
-                            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 md:gap-0 mb-3">
-                              <h3 className="text-lg md:text-xl font-bold text-gray-900">
-                                {item.update}
-                              </h3>
-                              <span className="text-yellow-600 font-semibold text-base md:text-lg">
-                                {item.progress}%
-                              </span>
-                            </div>
-
-                            <p className="text-gray-600 mb-4 text-sm md:text-base">
-                              {new Date(item.date).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </p>
-
-                            {/* PROGRESS BAR */}
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
-                                style={{ width: `${item.progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* IMAGES SECTION */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 px-4">
-                    {(constructionUpdates.length > 0
-                      ? constructionUpdates.filter((u) => u.image)
-                      : [
-                          { image: "/imag12.jpg" },
-                          { image: "/image3.jpg" },
-                          { image: "/image9.jpg" },
-                        ]
-                    ).map((item, index) => (
-                      <div
-                        key={index}
-                        className="relative h-48 sm:h-56 md:h-64 rounded-2xl overflow-hidden shadow-md"
-                      >
-                        <img
-                          src={
-                            constructionUpdates.length > 0
-                              ? `${Imagebase}${item.image}`
-                              : item.image
-                          }
-                          alt={`Construction ${index + 1}`}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* PRICE TAB */}
-          {activeTab === "price" && (
-            <div className="space-y-12 px-4 sm:px-6 lg:px-8">
-              <div className="text-center">
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
-                  {projectStatus === 'completed' ? 'Project Status' : 'Price List'}
-                </h2>
-                <p className="text-lg sm:text-xl text-gray-600">
-                  {projectStatus === 'completed' 
-                    ? 'Information about this completed project' 
-                    : 'Transparent pricing for all unit types'}
-                </p>
-              </div>
-
-              {projectStatus === 'completed' ? (
-                // Completed project view
-                <div className="max-w-2xl mx-auto">
-                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 md:p-12 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-                      <Building2 className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                      Project Fully Sold Out!
-                    </h3>
-                    <p className="text-gray-600 text-lg mb-6">
-                      All units in this completed project have been successfully sold and handed over to residents.
-                    </p>
-                    
-                    {projectData?.totalUnits && (
-                      <div className="mb-6">
-                        <p className="text-gray-700 font-medium">
-                          Total Units: <span className="text-blue-600 font-bold">{projectData.totalUnits}</span>
-                        </p>
-                        <p className="text-gray-600 text-sm mt-2">
-                          All units are now occupied by happy homeowners.
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-                      <h4 className="font-semibold text-gray-800 mb-2">Looking for available units?</h4>
-                      <p className="text-gray-600">
-                        Check out our ongoing projects for current availability and pricing.
+                    {/* Center: price badge */}
+                    <div className="flex-shrink-0 bg-[#67a139]/10 px-3 py-1.5 rounded-lg">
+                      <p className="text-[#67a139] font-bold text-sm whitespace-nowrap">
+                        {unit.price}
                       </p>
                     </div>
-                    
+
+                    {/* Right: enquire button */}
                     <button
                       onClick={() => setShowEnquiry(true)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md"
+                      className="flex-shrink-0 bg-[#67a139] text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
                     >
-                      View Ongoing Projects
+                      Enquire
                     </button>
                   </div>
                 </div>
-              ) : (
-                // Original price list for ongoing projects
-                <>
-                  {/* Loading */}
-                  {loadingPrice && (
-                    <p className="text-center text-gray-500 text-lg">
-                      Loading price list...
-                    </p>
-                  )}
+              );
+            })}
+          </div>
 
-                  {/* Error */}
-                  {priceError && (
-                    <p className="text-center text-red-500 text-lg">{priceError}</p>
-                  )}
+          {/* ── DESKTOP: Original table (hidden on mobile) ── */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+              <thead className="bg-[#67a139]">
+                <tr>
+                  <th className="px-4 py-3 text-left text-white font-bold text-sm sm:text-base">
+                    Property Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-white font-bold text-sm sm:text-base">
+                    Size in Sq.Ft
+                  </th>
+                  <th className="px-4 py-3 text-left text-white font-bold text-sm sm:text-base">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-left text-white font-bold text-sm sm:text-base">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(priceList.length > 0
+                  ? priceList
+                  : [
+                      { unit: "Studio - 718 Sq.Ft", price: "₹45 Lakhs" },
+                      { unit: "1 BHK - 850 Sq.Ft", price: "₹55 Lakhs" },
+                      { unit: "2 BHK - 1150 Sq.Ft", price: "₹75 Lakhs" },
+                      { unit: "3 BHK - 1357 Sq.Ft", price: "₹90 Lakhs" },
+                    ]
+                ).map((unit, index) => {
+                  const label = unit.unit || "";
+                  const [uType = "", uArea = ""] = label.split(" - ");
+                  return (
+                    <tr key={index} className="border-b border-gray-200 last:border-b-0">
+                      <td className="px-4 py-3 text-gray-900 font-semibold text-sm sm:text-base">
+                        {uType}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 text-sm sm:text-base">
+                        {uArea}
+                      </td>
+                      <td className="px-4 py-3 text-[#67a139] font-bold text-sm sm:text-base">
+                        {unit.price}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setShowEnquiry(true)}
+                          className="bg-[#67a139] text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-semibold text-sm sm:text-base hover:bg-[#4a8f2f] transition-colors"
+                        >
+                          Enquire
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-                  <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <thead className="bg-yellow-500">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-gray-900 font-bold text-sm sm:text-base">
-                              Property Type
-                            </th>
-                            <th className="px-4 py-3 text-left text-gray-900 font-bold text-sm sm:text-base">
-                              Size in Sq.Ft
-                            </th>
-                            <th className="px-4 py-3 text-left text-gray-900 font-bold text-sm sm:text-base">
-                              Price
-                            </th>
-                            <th className="px-4 py-3 text-left text-gray-900 font-bold text-sm sm:text-base">
-                              Action
-                            </th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {(priceList.length > 0
-                            ? priceList
-                            : [
-                                { unit: "Studio - 718 Sq.Ft", price: "₹45 Lakhs" },
-                                { unit: "1 BHK - 850 Sq.Ft", price: "₹55 Lakhs" },
-                                { unit: "2 BHK - 1150 Sq.Ft", price: "₹75 Lakhs" },
-                                { unit: "3 BHK - 1357 Sq.Ft", price: "₹90 Lakhs" },
-                              ]
-                          ).map((unit, index) => {
-                            const label = unit.unit || "";
-                            const [uType = "", uArea = ""] = label.split(" - ");
-
-                            return (
-                              <tr
-                                key={index}
-                                className="border-b border-gray-200 last:border-b-0"
-                              >
-                                <td className="px-4 py-3 text-gray-900 font-semibold text-sm sm:text-base">
-                                  {uType}
-                                </td>
-
-                                <td className="px-4 py-3 text-gray-600 text-sm sm:text-base">
-                                  {uArea}
-                                </td>
-
-                                <td className="px-4 py-3 text-yellow-600 font-bold text-sm sm:text-base">
-                                  {unit.price}
-                                </td>
-
-                                <td className="px-4 py-3">
-                                  <button
-                                    onClick={() => setShowEnquiry(true)}
-                                    className="bg-yellow-500 text-gray-900 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-semibold text-sm sm:text-base hover:bg-yellow-600 transition-colors"
-                                  >
-                                    Enquire
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                   
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* GALLERY TAB */}
-{activeTab === "gallery" && (
-  <div className="space-y-12 py-12">
-    <h2 className="text-center text-black text-3xl sm:text-4xl font-semibold tracking-wider">
-      GALLERY
-    </h2>
-
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-      {/* Main Image */}
-      <div className="relative w-full h-[35vh] sm:h-[45vh] md:h-[55vh] lg:h-[65vh]
-          overflow-hidden shadow-lg bg-gray-100">
-
-        <img
-          src={
-            galleryImages.length > 0
-              ? `${Imagebase}${galleryImages[current]?.image}`
-              : images[current]
-          }
-          className="w-full h-full object-cover transition-all duration-500"
-          alt="Gallery"
-        />
-
-        <button
-          onClick={handlePrev}
-          className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 sm:p-3 rounded-full"
-        >
-          ←
-        </button>
-
-        <button
-          onClick={handleNext}
-          className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 sm:p-3 rounded-full"
-        >
-          →
-        </button>
-      </div>
-
-      {/* Thumbnails */}
-      <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-8 justify-center flex-wrap">
-        {(galleryImages.length > 0 ? galleryImages : images).map(
-          (img, index) => (
-            <div
-              key={index}
-              onClick={() => setCurrent(index)}
-              className={`cursor-pointer overflow-hidden ${
-                current === index
-                  ? "ring-4 ring-yellow-500 scale-105"
-                  : "ring-2 ring-gray-300"
-              } transition-all`}
-            >
-              <img
-                src={
-                  galleryImages.length > 0
-                    ? `${Imagebase}${img.image}`
-                    : img
-                }
-                className="w-16 h-12 sm:w-24 sm:h-20 object-cover"
-              />
-            </div>
-          )
-        )}
-      </div>
-    </div>
+        </div>
+      </>
+    )}
   </div>
-)}
+</section>
 
+          {/* GALLERY SECTION */}
+          <section id="section-gallery" className="scroll-mt-[100px] sm:scroll-mt-[130px] md:scroll-mt-[160px]">
+            <div className="space-y-12 p-0 mt-[45px]">
+              <h2 className="text-center text-black text-3xl sm:text-4xl font-semibold tracking-wider">
+                GALLERY
+              </h2>
+
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+                {/* Main Image */}
+                <div className="relative w-full h-[35vh] sm:h-[45vh] md:h-[55vh] lg:h-[65vh] overflow-hidden shadow-lg bg-gray-100">
+                  <img
+                    src={
+                      galleryImages.length > 0
+                        ? `${Imagebase}${galleryImages[current]?.image}`
+                        : images[current]
+                    }
+                    className="w-full h-full object-cover transition-all duration-500"
+                    alt="Gallery"
+                  />
+
+                  <button
+                    onClick={handlePrev}
+                    className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 sm:p-3 rounded-full"
+                  >
+                    ←
+                  </button>
+
+                  <button
+                    onClick={handleNext}
+                    className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 sm:p-3 rounded-full"
+                  >
+                    →
+                  </button>
+                </div>
+
+                {/* Thumbnails */}
+                <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-8 justify-center flex-wrap">
+                  {(galleryImages.length > 0 ? galleryImages : images).map(
+                    (img, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setCurrent(index)}
+                        className={`cursor-pointer overflow-hidden ${current === index
+                          ? "ring-4 ring-yellow-500 scale-105"
+                          : "ring-2 ring-gray-300"
+                          } transition-all`}
+                      >
+                        <img
+                          src={
+                            galleryImages.length > 0
+                              ? `${Imagebase}${img.image}`
+                              : img
+                          }
+                          className="w-16 h-12 sm:w-24 sm:h-20 object-cover"
+                        />
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -2114,12 +2115,12 @@ if (projectStatus === "completed") {
           />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-12 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-12 relative z-1">
           <div>
             <h1 className="text-3xl sm:text-5xl lg:text-7xl font-light leading-snug sm:leading-tight">
-              <span className="text-yellow-500">
-                {projectStatus === 'completed' 
-                  ? 'Successfully Delivered.' 
+              <span className="text-[#67a139]">
+                {projectStatus === 'completed'
+                  ? 'Successfully Delivered.'
                   : smartInvestment?.titleLine1 || 'Smart Investment.'}
               </span>
               <br />
@@ -2136,7 +2137,7 @@ if (projectStatus === "completed") {
                 : smartInvestment?.tagline || `SECURE YOUR DREAM INVESTMENT AT Vishwak Properties`}
             </p>
 
-            <p className="mt-4 inline-block bg-yellow-500 text-black font-bold px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-lg leading-snug sm:leading-normal">
+            <p className="mt-4 inline-block bg-[#67a139] text-white font-bold px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-lg leading-snug sm:leading-normal">
               {projectStatus === 'completed'
                 ? `WHERE DREAMS BECOME REALITY AND FAMILIES CREATE MEMORIES.`
                 : smartInvestment?.highlightText || `WHERE BUDGET MEETS OPPORTUNITY AND MODERN COMFORT MEETS CONNECTIVITY.`}
@@ -2153,19 +2154,16 @@ if (projectStatus === "completed") {
         {projectStatus === 'ongoing' && (
           <button
             onClick={() => setShowEnquiry(true)}
-            className="fixed right-0 top-1/2 -translate-y-1/2 bg-yellow-500 text-black px-3 sm:px-4 py-3 sm:py-4 font-bold tracking-[0.2em] text-[11px] sm:text-[13px] uppercase shadow-lg writing-vertical-rl hover:bg-yellow-600 transition-colors z-40"
+            className="fixed right-0 top-1/2 -translate-y-1/2 bg-[#67a139] text-white px-3 sm:px-4 py-3 sm:py-4 font-bold tracking-[0.2em] text-[11px] sm:text-[13px] uppercase shadow-lg writing-vertical-rl hover:bg-yellow-600 transition-colors z-40"
           >
             ENQUIRE NOW
           </button>
         )}
       </section>
 
-
-
-      {/* Stats Section */}
-      <div className=" bg-gradient-to-br from-white to-gray-50 hidden">
+      {/* Stats Section (hidden) */}
+      <div className="bg-gradient-to-br from-white to-gray-50 hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
             {stats.length > 0 ? (
@@ -2212,7 +2210,7 @@ if (projectStatus === "completed") {
           </div>
 
           {/* Hero Thumbnail Section */}
-             <div className="relative rounded-3xl overflow-hidden group hidden">
+          <div className="relative rounded-3xl overflow-hidden group hidden">
             {/* Thumbnail Image */}
             <img
               src={thumbnailUrl || "/placeholder.jpg"}
@@ -2231,72 +2229,20 @@ if (projectStatus === "completed") {
                   setDownloadAfterEnquiry(true);
                   setShowEnquiry(true);
                 }}
-                className="
-                  group
-                  relative
-                  overflow-hidden
-                  px-6 sm:px-8 
-                  py-3 sm:py-4 
-                  rounded-xl
-                  font-semibold
-                  text-gray-900
-                  bg-gradient-to-r from-yellow-400 to-yellow-500
-                  shadow-md
-                  hover:shadow-xl 
-                  hover:from-yellow-500 
-                  hover:to-yellow-600
-                  transition-all 
-                  duration-300 
-                  flex 
-                  items-center 
-                  gap-3
-                "
+                className="group relative overflow-hidden px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-gray-900 bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-md hover:shadow-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 flex items-center gap-3"
               >
-
                 {/* Glow animation */}
-                <span
-                  className="
-                    absolute inset-0 
-                    bg-gradient-to-r from-yellow-300/40 to-yellow-500/40 
-                    opacity-0 
-                    group-hover:opacity-100 
-                    blur-xl 
-                    transition-all 
-                    duration-500
-                  "
-                ></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-yellow-300/40 to-yellow-500/40 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500"></span>
 
                 {/* Icon */}
-                <Download
-                  className="
-                    w-5 h-5 
-                    relative 
-                    z-10 
-                    transition-transform 
-                    duration-300 
-                    group-hover:-translate-y-0.5 
-                    group-hover:rotate-6
-                  "
-                />
+                <Download className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6" />
 
                 <span className="relative z-10 tracking-wide">
                   DOWNLOAD BROCHURE
                 </span>
 
                 {/* Arrow animation */}
-                <span
-                  className="
-                    absolute right-5 
-                    opacity-0 
-                    translate-x-2 
-                    group-hover:translate-x-0 
-                    group-hover:opacity-100 
-                    transition-all 
-                    duration-300 
-                    text-gray-800 
-                    font-bold
-                  "
-                >
+                <span className="absolute right-5 opacity-0 translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 text-gray-800 font-bold">
                   →
                 </span>
               </button>
@@ -2318,14 +2264,14 @@ if (projectStatus === "completed") {
               </span>
             </button>
           </div>
-
         </div>
       </div>
 
       {/* Floor Plan Modal */}
       {selectedFloorPlan && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-6">
-          <div className="bg-white rounded-2xl w-full sm:w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-auto">
+          {/* FIX 9: Floor plan modal - max height + overflow for small screens */}
+          <div className="bg-white rounded-2xl w-full sm:w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-y-auto">
             <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-2xl font-bold text-gray-900">
@@ -2376,7 +2322,8 @@ if (projectStatus === "completed") {
       {/* Payment Plan Enquiry Modal */}
       {showPaymentEnquiry && selectedPaymentPlan && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          {/* FIX 10: Payment enquiry modal - scrollable on small screens */}
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Payment Plan Enquiry</h3>
               <button
@@ -2470,7 +2417,6 @@ if (projectStatus === "completed") {
       {showRouteMap && media.routeMap && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden">
-
             <div className="flex justify-between items-center px-5 py-3 border-b">
               <h3 className="text-lg font-semibold">Location Map</h3>
               <button
@@ -2482,7 +2428,8 @@ if (projectStatus === "completed") {
             </div>
 
             <div className="p-4 bg-gray-50">
-              <div className="relative w-full h-[65vh] rounded-xl overflow-hidden">
+              {/* FIX 11: Route map responsive height */}
+              <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[65vh] rounded-xl overflow-hidden">
                 <iframe
                   src={media.routeMap}
                   className="w-full h-full"
@@ -2492,14 +2439,13 @@ if (projectStatus === "completed") {
                 ></iframe>
               </div>
             </div>
-
           </div>
         </div>
       )}
 
       {/* Cinematic 360 Modal */}
       {showCinematic360 && (
-        <div className="fixed inset-0 bg-black z-50 overflow-auto">
+        <div className="fixed inset-0 bg-black z-50 overflow-hidden">
           <div className="relative w-full h-full min-h-screen">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
               <div
@@ -2575,7 +2521,7 @@ if (projectStatus === "completed") {
                             <span className="hidden sm:inline">
                               Drag to Explore • Scroll to Zoom
                             </span>
-                            <span className="sm:hidden">Drag &amp; Pinch</span>
+                            <span className="sm:hidden">Drag &amp; Pinch to Zoom</span>
                           </p>
                           <p className="text-gray-400 text-[9px] sm:text-xs tracking-wide">
                             INTERACTIVE CONTROLS
@@ -2691,9 +2637,10 @@ if (projectStatus === "completed") {
               </div>
             </div>
 
+            {/* FIX 12: Canvas fills full viewport height on mobile */}
             <canvas
               ref={canvasRef}
-              className="w-full h-full min-h-[300px] sm:min-h-[500px] md:min-h-[600px] cursor-grab active:cursor-grabbing"
+              className="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"
               style={{
                 filter: "contrast(1.05) brightness(1.05)",
                 transition: "filter 0.3s ease",
@@ -2783,142 +2730,140 @@ if (projectStatus === "completed") {
 
       {/* Enquiry Modal */}
       {showEnquiry && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-md sm:max-w-lg mx-auto">
-            <div className="p-6 sm:p-8">
-              <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          {/* FIX 13: Enquiry modal slides up from bottom on mobile, centered on desktop */}
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-full sm:max-w-lg mx-auto max-h-[95vh] overflow-y-auto">
+            <div className="p-5 sm:p-8">
+              {/* FIX 14: Drag handle indicator for mobile bottom sheet */}
+              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
+              <div className="flex justify-between items-center mb-5 sm:mb-6">
                 <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
                   Enquire Now
                 </h3>
                 <button
                   onClick={() => setShowEnquiry(false)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-gray-500 hover:text-gray-700 transition-colors p-1"
                 >
                   <X className="w-5 sm:w-6 h-5 sm:h-6" />
                 </button>
               </div>
-             <form onSubmit={handleSubmit} className="p-5 sm:p-8">
-  <div className="space-y-5 sm:space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                {/* Name */}
+                <div className="relative">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
+                    <User className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="Your Name"
+                      className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base min-w-0"
+                    />
+                  </div>
+                </div>
 
-    {/* Name */}
-    <div className="relative">
-      <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
-        <User className="w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          placeholder="Your Name"
-          className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base"
-        />
-      </div>
-    </div>
+                {/* Email */}
+                <div className="relative">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
+                    <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="Email Address"
+                      className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base min-w-0"
+                    />
+                  </div>
+                </div>
 
-    {/* Email */}
-    <div className="relative">
-      <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
-        <Mail className="w-5 h-5 text-gray-400" />
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          placeholder="Email Address"
-          className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base"
-        />
-      </div>
-    </div>
+                {/* Phone */}
+                <div className="relative">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
+                    <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      placeholder="Phone Number"
+                      className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base min-w-0"
+                    />
+                  </div>
+                </div>
 
-    {/* Phone */}
-    <div className="relative">
-      <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
-        <Phone className="w-5 h-5 text-gray-400" />
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-          placeholder="Phone Number"
-          className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base"
-        />
-      </div>
-    </div>
+                {/* Inquiry Type */}
+                <div className="relative">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
+                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <select
+                      name="inquiry"
+                      value={formData.inquiry}
+                      onChange={handleChange}
+                      required
+                      className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base min-w-0"
+                    >
+                      <option value="">Select Inquiry Type</option>
+                      <option value="apartments">Apartments</option>
+                      <option value="villas">Villas</option>
+                      <option value="plots">Plots</option>
+                      <option value="commercial">Commercial</option>
+                      <option value="general">General Inquiry</option>
+                    </select>
+                  </div>
+                </div>
 
-    {/* Inquiry Type */}
-    <div className="relative">
-      <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
-        <ChevronDown className="w-5 h-5 text-gray-400" />
-        <select
-          name="inquiry"
-          value={formData.inquiry}
-          onChange={handleChange}
-          required
-          className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base"
-        >
-          <option value="">Select Inquiry Type</option>
-          <option value="apartments">Apartments</option>
-          <option value="villas">Villas</option>
-          <option value="plots">Plots</option>
-          <option value="commercial">Commercial</option>
-          <option value="general">General Inquiry</option>
-        </select>
-      </div>
-    </div>
+                {/* Dynamic Project Dropdown */}
+                {isClient && projectOptions.length > 0 && (
+                  <div className="relative">
+                    <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
+                      <Building2 className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <select
+                        name="projectId"
+                        value={formData.projectId || ""}
+                        onChange={handleChange}
+                        required
+                        className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base min-w-0"
+                      >
+                        <option value="">Select Project</option>
 
-    {/* Dynamic Project Dropdown */}
-    {isClient && projectOptions.length > 0 && (
-      <div className="relative">
-        <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
-          <Building2 className="w-5 h-5 text-gray-400" />
-          <select
-            name="projectId"
-            value={formData.projectId || ""}
-            onChange={handleChange}
-            required
-            className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base"
-          >
-            <option value="">Select Project</option>
+                        {projectOptions.map((project) => (
+                          <option key={project.projectId} value={project.projectId}>
+                            {project.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
 
-            {projectOptions.map((project) => (
-              <option key={project.projectId} value={project.projectId}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    )}
+                {/* Message */}
+                <div className="relative">
+                  <div className="border-2 border-gray-300 focus-within:border-[#67a139] rounded-xl transition-colors p-3">
+                    <textarea
+                      name="message"
+                      rows={3}
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Your Message (Optional)"
+                      className="w-full outline-none text-gray-900 placeholder-gray-400 resize-none text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
 
-    {/* Message */}
-    <div className="relative">
-      <div className="border-2 border-gray-300 focus-within:border-[#67a139] rounded-xl transition-colors p-3">
-        <textarea
-          name="message"
-          rows={3}
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="Your Message (Optional)"
-          className="w-full outline-none text-gray-900 placeholder-gray-400 resize-none text-sm sm:text-base"
-        />
-      </div>
-    </div>
-
-    {/* Submit */}
-    <button
-      type="submit"
-      className="w-full bg-[#67a139] hover:bg-[#4a8f2f] text-white py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
-    >
-      <Send className="w-5 h-5" />
-      Send Enquiry
-    </button>
-
-  </div>
-</form>
-
+                {/* Submit */}
+                <button
+                  type="submit"
+                  className="w-full bg-[#67a139] hover:bg-[#4a8f2f] text-white py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  <Send className="w-5 h-5" />
+                  Send Enquiry
+                </button>
+              </form>
             </div>
           </div>
         </div>

@@ -145,7 +145,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600
+                <div className="w-[22%] h-14 bg-gradient-to-br from-green-500 to-green-600
                                 rounded-2xl flex items-center justify-center shadow-lg">
                   <MapPin className="text-white" />
                 </div>
