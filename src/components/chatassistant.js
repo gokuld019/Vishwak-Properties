@@ -13,7 +13,7 @@ const ChatAssistant = () => {
   const inputRef       = useRef(null);
 
   const API_URL  = process.env.NEXT_PUBLIC_API_URL;
-  const LOGO_URL = '/logo.png'; // 🔁 Replace with your actual logo path
+  const LOGO_URL = '/logo.webp'; // 🔁 Replace with your actual logo path
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -278,7 +278,7 @@ const ChatAssistant = () => {
         }
         .vp-fab-inner {
           width: 58px; height: 58px; border-radius: 50%;
-          background: linear-gradient(145deg, #67a139, #3d6b21);
+          background: white;
           display: flex; align-items: center; justify-content: center;
           overflow: hidden; position: relative;
           box-shadow: 0 8px 24px rgba(103,161,57,0.5), 0 2px 8px rgba(0,0,0,0.2);

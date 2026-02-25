@@ -342,6 +342,16 @@ export default function ProjectDetailsPage({ projectId }) {
     };
   }, []);
 
+  // Helper to fix localhost URLs from backend
+const fixImageUrl = (url) => {
+  if (!url) return url;
+  // If the URL points to localhost, replace it with the public backend IP
+  if (url.includes('localhost:5000')) {
+    return url.replace('localhost:5000', '76.13.243.90:5000');
+  }
+  return url;
+};
+
   // Measure sticky tabs section height
   useEffect(() => {
     if (!tabsRef.current) return;
@@ -737,49 +747,56 @@ export default function ProjectDetailsPage({ projectId }) {
   }, [projectId]);
 
   // Three.js 360 Viewer (unchanged)
-  useEffect(() => {
-    if (!showCinematic360 || !current360Image || !canvasRef.current) return;
-    console.log("360 WILL LOAD:", current360Image);
+useEffect(() => {
+  if (!showCinematic360 || !current360Image || !canvasRef.current) return;
+  console.log("360 WILL LOAD:", current360Image);
 
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+  const scene = new THREE.Scene();
+  sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-      0.1,
-      1000
-    );
-    camera.position.set(0, 0, 0.1);
-    cameraRef.current = camera;
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+    0.1,
+    1000
+  );
+  camera.position.set(0, 0, 0.1);
+  cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
-    });
-    renderer.setSize(
-      canvasRef.current.clientWidth,
-      canvasRef.current.clientHeight
-    );
-    renderer.setPixelRatio(window.devicePixelRatio);
-    rendererRef.current = renderer;
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvasRef.current,
+    antialias: true,
+    alpha: true,
+  });
+  renderer.setSize(
+    canvasRef.current.clientWidth,
+    canvasRef.current.clientHeight
+  );
+  renderer.setPixelRatio(window.devicePixelRatio);
+  rendererRef.current = renderer;
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
-    geometry.scale(-1, 1, 1);
+  const geometry = new THREE.SphereGeometry(500, 60, 40);
+  geometry.scale(-1, 1, 1);
 
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(current360Image);
-    texture.minFilter = THREE.LinearFilter;
+  const textureLoader = new THREE.TextureLoader();
+  // ✅ CRITICAL: Set crossOrigin to anonymous to avoid CORS issues
+  textureLoader.setCrossOrigin('anonymous');
+  const texture = textureLoader.load(
+    current360Image,
+    () => console.log("Texture loaded successfully"),
+    undefined,
+    (err) => console.error("Texture load error:", err)
+  );
+  texture.minFilter = THREE.LinearFilter;
 
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+  });
 
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-    sphereRef.current = sphere;
+  const sphere = new THREE.Mesh(geometry, material);
+  scene.add(sphere);
+  sphereRef.current = sphere;
 
     let isUserInteracting = false;
     let onPointerDownMouseX = 0;
@@ -981,14 +998,15 @@ export default function ProjectDetailsPage({ projectId }) {
   };
 
   const openCinematic360 = () => {
-    if (!media.cinematic360) {
-      alert("Cinematic 360° not available");
-      return;
-    }
-    console.log("Opening 360 with:", media.cinematic360);
-    setCurrent360Image(media.cinematic360);
-    setShowCinematic360(true);
-  };
+  if (!media.cinematic360) {
+    alert("Cinematic 360° not available");
+    return;
+  }
+  const fixedUrl = fixImageUrl(media.cinematic360);
+  console.log("Opening 360 with fixed URL:", fixedUrl);
+  setCurrent360Image(fixedUrl);
+  setShowCinematic360(true);
+};
 
   const closeCinematic360 = () => {
     setShowCinematic360(false);
@@ -1808,58 +1826,68 @@ export default function ProjectDetailsPage({ projectId }) {
             </section>
           )}
 
-          {/* AMENITIES SECTION */}
-          <section
-            id="section-amenities"
-            style={{ scrollMarginTop: totalStickyHeight }}
-          >
-            <div className="py-16 sm:py-20 px-6 sm:px-10 lg:px-20 bg-[#f9faf9]">
-              {/* Header */}
-              <div className="text-center mb-14">
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-gray-900 mb-4">
-                  World Class <span className="text-[#67a139]">Amenities</span>
-                </h2>
-                <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                  Experience thoughtfully designed amenities crafted to elevate your lifestyle.
-                </p>
-              </div>
+         {/* AMENITIES SECTION */}
+<section
+  id="section-amenities"
+  style={{ scrollMarginTop: totalStickyHeight }}
+>
+  <div className="">
+    
+    {/* Header */}
+    <div className="text-center mb-16">
+      <p className="text-xs tracking-[0.3em] uppercase text-[#67a139] mb-3">
+        Amenities
+      </p>
 
-              {/* Amenities Grid */}
-              {amenityTextList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {amenityTextList.map((item, index) => {
-                    const name = item.name || item;
-                    return (
-                      <div
-                        key={index}
-                        className="group bg-white/70 backdrop-blur-md border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2"
-                      >
-                        <div className="flex items-start gap-5">
-                          {/* Icon Circle */}
-                          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#67a139]/10 group-hover:bg-[#67a139] transition-all duration-300">
-                            <CheckCircle className="w-6 h-6 text-[#67a139] group-hover:text-white transition-colors duration-300" />
-                          </div>
-                          {/* Text */}
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                              {name}
-                            </h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                              Designed to enhance comfort, convenience, and modern living standards.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+      <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 tracking-tight">
+        World Class <span className="text-[#67a139]">Amenities</span>
+      </h2>
+
+      <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+        Experience thoughtfully designed amenities crafted to elevate your lifestyle.
+      </p>
+    </div>
+
+    {/* Minimal Modern Grid */}
+    {amenityTextList.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {amenityTextList.map((item, index) => {
+          const name = item.name || item;
+          return (
+            <div
+              key={index}
+              className="group border border-gray-200 rounded-xl p-8 bg-white transition-all duration-300 hover:border-[#67a139] hover:-translate-y-1"
+            >
+              <div className="flex items-start gap-4">
+                
+                {/* Icon */}
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-[#67a139]" />
                 </div>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No amenities added for this project yet.
-                </p>
-              )}
+
+                {/* Text */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors duration-300">
+                    {name}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Designed to enhance comfort and deliver a refined modern lifestyle experience.
+                  </p>
+                </div>
+
+              </div>
             </div>
-          </section>
+          );
+        })}
+      </div>
+    ) : (
+      <p className="text-center text-gray-500">
+        No amenities added for this project yet.
+      </p>
+    )}
+  </div>
+</section>
 
           {/* PRICE SECTION */}
           <section

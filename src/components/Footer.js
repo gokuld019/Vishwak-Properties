@@ -6,11 +6,15 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import ChatAssistant from "@/components/chatassistant";
 
+/* ✅ DEFINE API_BASE BEFORE USING IT */
+const API_BASE = `${process.env.NEXT_PUBLIC_API_LIVE_URL}`;
+
+/* ✅ UPDATED URL ONLY */
 const ongoingProjects = [
-  ["Aira Avenue", "http://localhost:3000/project-details/1"],
-  ["ALA Garden – Vandalur", "http://localhost:3000/project-details/12"],
-  ["SS Astron – OMR", "http://localhost:3000/project-details/5"],
-  ["VK Aurora – Kelambakkam", "http://localhost:3000/project-details/10"],
+  ["Aira Avenue", `${API_BASE}/project-details/1`],
+  ["ALA Garden – Vandalur", `${API_BASE}/project-details/12`],
+  ["SS Astron – OMR", `${API_BASE}/project-details/5`],
+  ["VK Aurora – Kelambakkam", `${API_BASE}/project-details/10`],
 ];
 
 const socialLinks = [
@@ -31,19 +35,19 @@ export default function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
 
+  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
+
   return (
     <>
       <ChatAssistant />
 
       <footer className="relative w-full bg-white border-t border-[#e4ede0] overflow-hidden text-[#1a2e1a]">
 
-        {/* Decorative radial glow — top right */}
         <div
           className="pointer-events-none absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(103,161,57,0.07) 0%, transparent 68%)" }}
         />
 
-        {/* Decorative radial glow — bottom left */}
         <div
           className="pointer-events-none absolute bottom-8 -left-16 w-[280px] h-[280px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(103,161,57,0.05) 0%, transparent 70%)" }}
@@ -51,10 +55,8 @@ export default function Footer() {
 
         <div className="relative max-w-[1280px] mx-auto px-6 sm:px-10 pt-14 sm:pt-16">
 
-          {/* UPDATED RESPONSIVE GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-14">
 
-            {/* LOGO */}
             <div className="order-1 md:order-1 flex justify-center md:justify-start">
               <Link href="/" className="inline-flex items-center gap-3 group w-fit">
                 <img
@@ -65,7 +67,6 @@ export default function Footer() {
               </Link>
             </div>
 
-            {/* GET IN TOUCH (Below Logo on Mobile) */}
             <div className="order-2 md:order-4">
               <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
                 Get In Touch
@@ -103,7 +104,6 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* ONGOING PROJECTS */}
             <div className="order-3 md:order-2">
               <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
                 Ongoing Projects
@@ -125,13 +125,12 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* COMPLETED PROJECTS */}
             <div className="order-4 md:order-3">
               <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
                 Completed Projects
               </p>
               <Link
-                href="http://localhost:3000/project-details/14"
+                href={`${API_BASE}/project-details/14`}
                 className="group flex items-center gap-2 text-[#5a7250] text-[0.87rem] py-[0.35rem] hover:text-[#4d8c2a] transition-colors duration-200"
               >
                 <ArrowUpRight
@@ -142,7 +141,6 @@ export default function Footer() {
               </Link>
             </div>
 
-            {/* COMPANY */}
             <div className="order-5 md:order-3 sm:col-span-2 md:col-span-1">
               <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
                 Company
@@ -164,29 +162,6 @@ export default function Footer() {
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* BOTTOM BAR FIXED FOR MOBILE */}
-        <div className="border-t border-[#e4ede0] bg-[#f7faf5]">
-          <div className="max-w-[1280px] mx-auto px-6 sm:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <p className="text-xs text-[#9aad90] tracking-wide">
-              © 2025{" "}
-              <strong className="text-[#4d8c2a] font-semibold">
-                Vishwak Properties
-              </strong>. All Rights Reserved.
-            </p>
-            <div className="flex items-center gap-6 flex-wrap justify-center sm:justify-end">
-              {["Privacy Policy", "Terms of Use", "Sitemap"].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="text-xs text-[#9aad90] hover:text-[#67a139] transition-colors duration-200"
-                >
-                  {item}
-                </a>
-              ))}
-            </div>
           </div>
         </div>
 
