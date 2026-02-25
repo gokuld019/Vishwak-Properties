@@ -1293,10 +1293,12 @@ export default function ProjectDetailsPage({ projectId }) {
             ))}
           </div>
         </div>
+
+        
       </section>
 
       {/* Tab Content - All Sections with dynamic scroll-margin */}
-      <section className="py-10 sm:py-14 md:py-16 ">
+      <section className="py-10 sm:py-14 md:py-16  overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 ">
 
           {/* OVERVIEW SECTION */}

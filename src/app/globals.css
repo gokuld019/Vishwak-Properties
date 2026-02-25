@@ -220,3 +220,7 @@
 .animate-scaleIn {
   animation: scaleIn 0.4s ease-out forwards;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;             /* Chrome, Safari */
+}

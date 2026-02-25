@@ -121,13 +121,7 @@ const ChatAssistant = () => {
           />
           <span className="vp-fab-fallback">VP</span>
         </div>
-        <span className="vp-fab-badge">
-          {isOpen ? (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M1 1l10 10M11 1L1 11" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          ) : 'CHAT'}
-        </span>
+        
       </button>
 
       {/* ── Chat Window ── */}
