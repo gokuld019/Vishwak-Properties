@@ -60,7 +60,7 @@ export default function Footer() {
             <div className="order-1 md:order-1 flex justify-center md:justify-start">
               <Link href="/" className="inline-flex items-center gap-3 group w-fit">
                 <img
-                  src="/logo.png"
+                  src="/Logo.png"
                   alt="Vishwak Properties"
                   className="h-24 md:h-30 w-auto object-contain group-hover:opacity-80 transition-opacity duration-200"
                 />
