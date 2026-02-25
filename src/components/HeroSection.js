@@ -703,53 +703,46 @@ export default function HeroSection() {
         </div>
       </section>
 
-      {/* Recently Updated Projects - Mobile Responsive */}
-      <section className="w-full bg-[#f5f5f5] py-10 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1280px] mx-auto">
-          {/* Heading */}
-          <div className="text-center mb-8 sm:mb-10 md:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              Recently Updated <br />
-              <span className="font-extrabold text-3xl sm:text-4xl md:text-5xl text-[#67a139]">
-                Projects
-              </span>
-            </h2>
-            <p className="text-gray-600 mt-2 sm:mt-3 text-xs sm:text-sm md:text-base sm:whitespace-nowrap">
-              Discover the newest updates across our top-performing projects.
-            </p>
-          </div>
+      {/* Recently Updated Projects - Fully Responsive */}
+<section className="w-full bg-[#f5f5f5] py-10 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+  <div className="max-w-[1280px] mx-auto">
+    
+    {/* Heading */}
+    <div className="text-center mb-8 sm:mb-10 md:mb-14">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+        Recently Updated <br />
+        <span className="font-extrabold text-3xl sm:text-4xl md:text-5xl text-[#67a139]">
+          Projects
+        </span>
+      </h2>
 
-          {/* Banner */}
-          {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
-            <Link
-              href={`/project-details/${recentProjects[0].projectId}`}
-              className="block relative w-full h-[280px] sm:h-[350px] md:h-[450px] lg:h-[520px] rounded-xl overflow-hidden shadow-lg group"
-            >
-              {/* Desktop Image */}
-              <Image
-                src="/homebanner.jpeg"
-                alt="Aira Avenue"
-                fill
-                priority
-                className="hidden sm:block  "
-              />
+      <p className="text-gray-600 mt-2 sm:mt-3 text-xs sm:text-sm md:text-base">
+        Discover the newest updates across our top-performing projects.
+      </p>
+    </div>
 
-              {/* Mobile Image */}
-              <Image
-                src="/Aira-sub-banner.webp"
-                alt="Aira Avenue"
-                fill
-                priority
-                className="object-cover sm:hidden  "
-              />
-            </Link>
-          ) : (
-            <div className="text-center text-gray-500 py-10">
-              No recent projects available.
-            </div>
-          )}
-        </div>
-      </section>
+    {/* Banner Image */}
+    {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
+      <Link
+        href={`/project-details/${recentProjects[0].projectId}`}
+        className="block w-full"
+      >
+        <Image
+          src="/homebanner.jpeg"
+          alt="Recently Updated Project"
+          width={1920}
+          height={1080}
+          priority
+          className="w-full h-auto rounded-xl shadow-md"
+        />
+      </Link>
+    ) : (
+      <div className="text-center text-gray-500 py-10">
+        No recent projects available.
+      </div>
+    )}
+  </div>
+</section>
 
       {/* Amenities Section - Mobile Responsive */}
       <div className="relative bg-gradient-to-br from-white via-gray-50 to-[#ecf5e9] py-10 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">

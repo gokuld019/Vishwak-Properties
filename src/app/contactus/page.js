@@ -143,15 +143,15 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-26 h-14 bg-gradient-to-br from-green-500 to-green-600
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600
                                 rounded-2xl flex items-center justify-center shadow-lg">
                   <MapPin className="text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Address</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    OLD NO-113B/28A, NEW NO-18, Kakkan Street, Tambaram West,
-                    Chennai, Chengalpattu, Tamil Nadu – 600045
+                    OLD NO-113B/28A, NEW NO-18, Kakkan Street<br /> Tambaram West,
+                    Chennai<br /> Chengalpattu, Tamil Nadu – 600045
                   </p>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -125,8 +125,10 @@ export default function ProjectDetailsPage({ projectId }) {
   const rendererRef = useRef(null);
   const sphereRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const observerRef = useRef(null); // for intersection observer
-  const tabsRef = useRef(null); // to measure the sticky tabs height
+  const tabsRef = useRef(null);
+  // ✅ FIX: Ref to pause scroll-tracking while programmatic smooth-scroll runs
+  const isScrollingToSection = useRef(false);
+  const scrollTimeoutRef = useRef(null);
 
   // ------------------------
   // CONSTANTS
@@ -164,8 +166,8 @@ export default function ProjectDetailsPage({ projectId }) {
       projectData.type.toLowerCase().includes("land"))
   );
 
-  // Filter tabs based on project status
-  const getFilteredTabs = () => {
+  // ✅ FIX: Wrapped in useCallback so it can be used as a stable dependency
+  const getFilteredTabs = useCallback(() => {
     let tabs = [...allTabs];
 
     // Remove floor plans for plot projects
@@ -184,7 +186,7 @@ export default function ProjectDetailsPage({ projectId }) {
     }
 
     return tabs;
-  };
+  }, [isPlotProject, projectStatus]);
 
   // Get status badge styling
   const getStatusBadge = () => {
@@ -278,6 +280,15 @@ export default function ProjectDetailsPage({ projectId }) {
     return url;
   };
 
+  // Helper to fix localhost URLs from backend
+  const fixImageUrl = (url) => {
+    if (!url) return url;
+    if (url.includes('localhost:5000')) {
+      return url.replace('localhost:5000', '76.13.243.90:5000');
+    }
+    return url;
+  };
+
   // ------------------------
   // EFFECTS - DATA FETCHING
   // ------------------------
@@ -341,16 +352,6 @@ export default function ProjectDetailsPage({ projectId }) {
       resizeObserver.disconnect();
     };
   }, []);
-
-  // Helper to fix localhost URLs from backend
-const fixImageUrl = (url) => {
-  if (!url) return url;
-  // If the URL points to localhost, replace it with the public backend IP
-  if (url.includes('localhost:5000')) {
-    return url.replace('localhost:5000', '76.13.243.90:5000');
-  }
-  return url;
-};
 
   // Measure sticky tabs section height
   useEffect(() => {
@@ -746,57 +747,56 @@ const fixImageUrl = (url) => {
     fetchSpecifications();
   }, [projectId]);
 
-  // Three.js 360 Viewer (unchanged)
-useEffect(() => {
-  if (!showCinematic360 || !current360Image || !canvasRef.current) return;
-  console.log("360 WILL LOAD:", current360Image);
+  // Three.js 360 Viewer
+  useEffect(() => {
+    if (!showCinematic360 || !current360Image || !canvasRef.current) return;
+    console.log("360 WILL LOAD:", current360Image);
 
-  const scene = new THREE.Scene();
-  sceneRef.current = scene;
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
 
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-    0.1,
-    1000
-  );
-  camera.position.set(0, 0, 0.1);
-  cameraRef.current = camera;
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 0, 0.1);
+    cameraRef.current = camera;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas: canvasRef.current,
-    antialias: true,
-    alpha: true,
-  });
-  renderer.setSize(
-    canvasRef.current.clientWidth,
-    canvasRef.current.clientHeight
-  );
-  renderer.setPixelRatio(window.devicePixelRatio);
-  rendererRef.current = renderer;
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      antialias: true,
+      alpha: true,
+    });
+    renderer.setSize(
+      canvasRef.current.clientWidth,
+      canvasRef.current.clientHeight
+    );
+    renderer.setPixelRatio(window.devicePixelRatio);
+    rendererRef.current = renderer;
 
-  const geometry = new THREE.SphereGeometry(500, 60, 40);
-  geometry.scale(-1, 1, 1);
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    geometry.scale(-1, 1, 1);
 
-  const textureLoader = new THREE.TextureLoader();
-  // ✅ CRITICAL: Set crossOrigin to anonymous to avoid CORS issues
-  textureLoader.setCrossOrigin('anonymous');
-  const texture = textureLoader.load(
-    current360Image,
-    () => console.log("Texture loaded successfully"),
-    undefined,
-    (err) => console.error("Texture load error:", err)
-  );
-  texture.minFilter = THREE.LinearFilter;
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
+    const texture = textureLoader.load(
+      current360Image,
+      () => console.log("Texture loaded successfully"),
+      undefined,
+      (err) => console.error("Texture load error:", err)
+    );
+    texture.minFilter = THREE.LinearFilter;
 
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-  });
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
 
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
-  sphereRef.current = sphere;
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+    sphereRef.current = sphere;
 
     let isUserInteracting = false;
     let onPointerDownMouseX = 0;
@@ -845,7 +845,6 @@ useEffect(() => {
       camera.updateProjectionMatrix();
     };
 
-    // FIX 2: Handle pinch-to-zoom on mobile for 360 viewer
     let lastTouchDistance = null;
     const onTouchMove = (event) => {
       if (event.touches.length === 2) {
@@ -926,47 +925,52 @@ useEffect(() => {
     };
   }, [showCinematic360, current360Image]);
 
-  // ------------------------
-  // Intersection Observer for active tab – using totalStickyHeight
-  // ------------------------
+  // ✅ FIX: Replace IntersectionObserver with reliable scroll-position-based tracking
   useEffect(() => {
-    if (observerRef.current) observerRef.current.disconnect();
+    const filteredTabs = getFilteredTabs();
 
-    const timer = setTimeout(() => {
-      const sections = document.querySelectorAll('section[id^="section-"]');
-      if (!sections.length) return;
+    const handleScroll = () => {
+      // Skip while a tab-click smooth-scroll is in progress
+      if (isScrollingToSection.current) return;
 
-      const observer = new IntersectionObserver(
-        (entries) => {
-          let bestEntry = null;
-          entries.forEach((entry) => {
-            if (
-              entry.isIntersecting &&
-              (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio)
-            ) {
-              bestEntry = entry;
-            }
-          });
-          if (bestEntry) {
-            const id = bestEntry.target.id.replace("section-", "");
-            setActiveTab(id);
-          }
-        },
-        {
-          threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
-          rootMargin: `-${totalStickyHeight}px 0px -40% 0px`,
+      const scrollY = window.scrollY;
+      // Add a small buffer (10px) below the sticky header so the transition
+      // fires precisely as the section top clears the nav bar
+      const offset = totalStickyHeight + 10;
+
+      let currentId = filteredTabs[0]?.id;
+
+      for (const tab of filteredTabs) {
+        const el = document.getElementById(`section-${tab.id}`);
+        if (!el) continue;
+        const sectionTop = el.getBoundingClientRect().top + scrollY;
+        if (scrollY + offset >= sectionTop) {
+          currentId = tab.id;
         }
-      );
+      }
 
-      sections.forEach((section) => observer.observe(section));
-      observerRef.current = observer;
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-      if (observerRef.current) observerRef.current.disconnect();
+      if (currentId) setActiveTab(currentId);
     };
-  }, [totalStickyHeight, projectStatus, isPlotProject]);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Run once immediately to set the correct initial state
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [totalStickyHeight, projectStatus, isPlotProject, getFilteredTabs]);
+
+  // ✅ FIX: Auto-scroll the active tab button into view inside the horizontal tab bar (mobile)
+  useEffect(() => {
+    if (!tabsRef.current) return;
+    const activeBtn = tabsRef.current.querySelector(`[data-tab-id="${activeTab}"]`);
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activeTab]);
 
   // ------------------------
   // EVENT HANDLERS
@@ -998,15 +1002,15 @@ useEffect(() => {
   };
 
   const openCinematic360 = () => {
-  if (!media.cinematic360) {
-    alert("Cinematic 360° not available");
-    return;
-  }
-  const fixedUrl = fixImageUrl(media.cinematic360);
-  console.log("Opening 360 with fixed URL:", fixedUrl);
-  setCurrent360Image(fixedUrl);
-  setShowCinematic360(true);
-};
+    if (!media.cinematic360) {
+      alert("Cinematic 360° not available");
+      return;
+    }
+    const fixedUrl = fixImageUrl(media.cinematic360);
+    console.log("Opening 360 with fixed URL:", fixedUrl);
+    setCurrent360Image(fixedUrl);
+    setShowCinematic360(true);
+  };
 
   const closeCinematic360 = () => {
     setShowCinematic360(false);
@@ -1105,19 +1109,16 @@ useEffect(() => {
         return;
       }
 
-      // SUCCESS
       toast.success("Enquiry submitted successfully!", {
         description: "Our team will contact you shortly.",
       });
 
       setShowEnquiry(false);
 
-      // Auto-download brochure after enquiry
       if (downloadAfterEnquiry && brochureUrl) {
         window.open(brochureUrl, "_blank");
       }
 
-      // Reset the flag
       setDownloadAfterEnquiry(false);
     } catch (err) {
       console.error("Enquiry submit error:", err);
@@ -1125,13 +1126,25 @@ useEffect(() => {
     }
   };
 
-  // Scroll to section when tab is clicked
+  // ✅ FIX: scrollToSection sets a lock so the scroll listener does not
+  // immediately override the tab that was just clicked.
   const scrollToSection = (tabId) => {
+    setActiveTab(tabId);
+
+    // Pause the scroll-listener while smooth-scroll animates
+    isScrollingToSection.current = true;
+
     const el = document.getElementById(`section-${tabId}`);
     if (el) {
       const y = el.getBoundingClientRect().top + window.scrollY - totalStickyHeight;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
+
+    // Release the lock after the smooth-scroll animation finishes (~900 ms)
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingToSection.current = false;
+    }, 900);
   };
 
   // HERO IMAGE SAFE FALLBACK
@@ -1255,22 +1268,21 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Sticky Navigation Tabs */}
+      {/* ✅ FIXED: Sticky Navigation Tabs — horizontally scrollable on mobile,
+          active tab auto-centers itself via scrollIntoView */}
       <section
         ref={tabsRef}
         className="sticky z-30 bg-white border-b border-gray-200 shadow-sm w-full"
         style={{ top: headerHeight, willChange: 'transform' }}
       >
-        <div className="w-full max-w-7xl mx-auto overflow-x-auto">
-          <div className="flex justify-around scrollbar-hide">
+        <div className="w-full max-w-7xl mx-auto overflow-x-auto scrollbar-hide">
+          <div className="flex min-w-max sm:min-w-0 sm:justify-around">
             {getFilteredTabs().map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  scrollToSection(tab.id);
-                }}
-                className={`cursor-pointer flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm transition-all duration-300 ${
+                data-tab-id={tab.id}
+                onClick={() => scrollToSection(tab.id)}
+                className={`cursor-pointer flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-[#67a139] border-b-2 border-green-600 bg-green-50'
                     : 'text-gray-600 hover:text-white hover:bg-[#67a139]'
@@ -1711,7 +1723,7 @@ useEffect(() => {
               id="section-siteplan"
               style={{ scrollMarginTop: totalStickyHeight }}
             >
-              <div className="space-y-12 py-12 mt-0">
+              <div className="">
                 {/* Header */}
                 <div className="text-center px-4">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4">
@@ -1826,68 +1838,68 @@ useEffect(() => {
             </section>
           )}
 
-         {/* AMENITIES SECTION */}
-<section
-  id="section-amenities"
-  style={{ scrollMarginTop: totalStickyHeight }}
->
-  <div className="">
-    
-    {/* Header */}
-    <div className="text-center mb-16">
-      <p className="text-xs tracking-[0.3em] uppercase text-[#67a139] mb-3">
-        Amenities
-      </p>
+          {/* AMENITIES SECTION */}
+          <section
+            id="section-amenities"
+            style={{ scrollMarginTop: totalStickyHeight }}
+          >
+            <div className="">
 
-      <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 tracking-tight">
-        World Class <span className="text-[#67a139]">Amenities</span>
-      </h2>
+              {/* Header */}
+              <div className="text-center mb-16">
+                <p className="text-xs tracking-[0.3em] uppercase text-[#67a139] mb-3">
+                  Amenities
+                </p>
 
-      <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-        Experience thoughtfully designed amenities crafted to elevate your lifestyle.
-      </p>
-    </div>
+                <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 tracking-tight">
+                  World Class <span className="text-[#67a139]">Amenities</span>
+                </h2>
 
-    {/* Minimal Modern Grid */}
-    {amenityTextList.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {amenityTextList.map((item, index) => {
-          const name = item.name || item;
-          return (
-            <div
-              key={index}
-              className="group border border-gray-200 rounded-xl p-8 bg-white transition-all duration-300 hover:border-[#67a139] hover:-translate-y-1"
-            >
-              <div className="flex items-start gap-4">
-                
-                {/* Icon */}
-                <div className="w-10 h-10 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-[#67a139]" />
-                </div>
-
-                {/* Text */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors duration-300">
-                    {name}
-                  </h3>
-
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    Designed to enhance comfort and deliver a refined modern lifestyle experience.
-                  </p>
-                </div>
-
+                <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                  Experience thoughtfully designed amenities crafted to elevate your lifestyle.
+                </p>
               </div>
+
+              {/* Minimal Modern Grid */}
+              {amenityTextList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {amenityTextList.map((item, index) => {
+                    const name = item.name || item;
+                    return (
+                      <div
+                        key={index}
+                        className="group border border-gray-200 rounded-xl p-8 bg-white transition-all duration-300 hover:border-[#67a139] hover:-translate-y-1"
+                      >
+                        <div className="flex items-start gap-4">
+
+                          {/* Icon */}
+                          <div className="w-10 h-10 flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-[#67a139]" />
+                          </div>
+
+                          {/* Text */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors duration-300">
+                              {name}
+                            </h3>
+
+                            <p className="text-sm text-gray-500 leading-relaxed">
+                              Designed to enhance comfort and deliver a refined modern lifestyle experience.
+                            </p>
+                          </div>
+
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No amenities added for this project yet.
+                </p>
+              )}
             </div>
-          );
-        })}
-      </div>
-    ) : (
-      <p className="text-center text-gray-500">
-        No amenities added for this project yet.
-      </p>
-    )}
-  </div>
-</section>
+          </section>
 
           {/* PRICE SECTION */}
           <section
@@ -1907,7 +1919,7 @@ useEffect(() => {
               </div>
 
               {projectStatus === 'completed' ? (
-                // Completed project view — unchanged
+                // Completed project view
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 md:p-12 text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
@@ -2198,7 +2210,7 @@ useEffect(() => {
 
       {/* Stats Section (hidden) */}
       <div className="bg-gradient-to-br from-white to-gray-50 hidden">
-        {/* ... (stats content remains unchanged) */}
+        {/* stats content hidden */}
       </div>
 
       {/* Floor Plan Modal */}
@@ -2374,7 +2386,6 @@ useEffect(() => {
       {/* Cinematic 360 Modal */}
       {showCinematic360 && (
         <div className="fixed inset-0 bg-black z-50 overflow-hidden">
-          {/* ... (your existing 360 modal JSX remains unchanged) */}
           <div className="relative w-full h-full min-h-screen">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
               <div
@@ -2601,51 +2612,27 @@ useEffect(() => {
 
           <style jsx>{`
             @keyframes gridMove {
-              0% {
-                transform: translateY(0);
-              }
-              100% {
-                transform: translateY(50px);
-              }
+              0% { transform: translateY(0); }
+              100% { transform: translateY(50px); }
             }
 
             @keyframes scanLine {
-              0%,
-              100% {
-                transform: translateY(0);
-                opacity: 0;
-              }
-              50% {
-                transform: translateY(100vh);
-                opacity: 0.5;
-              }
+              0%, 100% { transform: translateY(0); opacity: 0; }
+              50% { transform: translateY(100vh); opacity: 0.5; }
             }
 
             @keyframes float {
-              0%,
-              100% {
-                transform: translateY(0);
-              }
-              50% {
-                transform: translateY(-10px);
-              }
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
             }
 
             @keyframes fadeOut {
-              to {
-                opacity: 0;
-                pointer-events: none;
-              }
+              to { opacity: 0; pointer-events: none; }
             }
 
             @keyframes gradient {
-              0%,
-              100% {
-                background-position: 0% 50%;
-              }
-              50% {
-                background-position: 100% 50%;
-              }
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
             }
 
             .animate-gradient {
@@ -2756,7 +2743,6 @@ useEffect(() => {
                         className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base min-w-0"
                       >
                         <option value="">Select Project</option>
-
                         {projectOptions.map((project) => (
                           <option key={project.projectId} value={project.projectId}>
                             {project.name}
