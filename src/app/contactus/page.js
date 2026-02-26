@@ -261,6 +261,47 @@ export default function ContactPage() {
           </div>
         </motion.section>
 
+        {/* ===== FLOATING ACTION BUTTONS ===== */}
+<div className="fixed bottom-45 right-8 flex flex-col items-center gap-4 z-50">
+
+  {/* WhatsApp Button */}
+  <a
+    href="https://wa.me/917401131313"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group relative w-14 h-14 bg-green-500 hover:bg-green-600 
+               rounded-full flex items-center justify-center 
+               shadow-lg transition-all duration-300 hover:scale-110"
+  >
+    <BsWhatsapp className="text-white text-2xl" />
+
+    {/* Tooltip */}
+    <span className="absolute right-16 bg-gray-900 text-white text-xs 
+                     px-3 py-1 rounded-md opacity-0 group-hover:opacity-100 
+                     transition whitespace-nowrap">
+      Chat on WhatsApp
+    </span>
+  </a>
+
+  {/* Call Button */}
+  <a
+    href="tel:+917401131313"
+    className="group relative w-14 h-14 bg-blue-500 hover:bg-blue-600 
+               rounded-full flex items-center justify-center 
+               shadow-lg transition-all duration-300 hover:scale-110"
+  >
+    <Phone className="text-white w-6 h-6" />
+
+    {/* Tooltip */}
+    <span className="absolute right-16 bg-gray-900 text-white text-xs 
+                     px-3 py-1 rounded-md opacity-0 group-hover:opacity-100 
+                     transition whitespace-nowrap">
+      Call Now
+    </span>
+  </a>
+
+</div>
+
       </div>
     </div>
   );

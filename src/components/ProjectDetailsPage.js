@@ -56,7 +56,7 @@ export default function ProjectDetailsPage({ projectId }) {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [tabsHeight, setTabsHeight] = useState(0);
   const [totalStickyHeight, setTotalStickyHeight] = useState(0);
-
+  const [amenities, setAmenities] = useState([]); 
   // API Data States
   const [projectData, setProjectData] = useState(null);
   const [floorPlans, setFloorPlans] = useState([]);
@@ -353,6 +353,28 @@ export default function ProjectDetailsPage({ projectId }) {
     };
   }, []);
 
+
+
+
+    useEffect(() => {
+    if (!projectId) return;
+
+    const fetchAmenities = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/project-amenities/${projectId}`
+        );
+
+        setAmenities(res.data.amenities || []);
+      } catch (err) {
+        console.error("Error fetching amenities:", err);
+      }
+    };
+
+    fetchAmenities();
+  }, [projectId]);
+
+  
   // Measure sticky tabs section height
   useEffect(() => {
     if (!tabsRef.current) return;
@@ -1841,67 +1863,65 @@ export default function ProjectDetailsPage({ projectId }) {
           )}
 
           {/* AMENITIES SECTION */}
-          <section
-            id="section-amenities"
-            style={{ scrollMarginTop: totalStickyHeight }}
+        <section
+  id="section-amenities"
+  style={{ scrollMarginTop: totalStickyHeight }}
+>
+  <div>
+
+    {/* Header */}
+    <div className="text-center mb-16">
+      <p className="text-xs tracking-[0.3em] uppercase text-[#67a139] mb-3">
+        Amenities
+      </p>
+
+      <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 tracking-tight">
+        World Class <span className="text-[#67a139]">Amenities</span>
+      </h2>
+
+      <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+        Experience thoughtfully designed amenities crafted to elevate your lifestyle.
+      </p>
+    </div>
+
+    {/* Grid */}
+    {amenities.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {amenities.map((item) => (
+          <div
+            key={item.id}
+            className="group border border-gray-200 rounded-xl p-8 bg-white transition-all duration-300 hover:border-[#67a139] hover:-translate-y-1"
           >
-            <div className="">
+            <div className="flex items-start gap-4">
 
-              {/* Header */}
-              <div className="text-center mb-16">
-                <p className="text-xs tracking-[0.3em] uppercase text-[#67a139] mb-3">
-                  Amenities
-                </p>
+              {/* Icon */}
+              <div className="w-10 h-10 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-[#67a139]" />
+              </div>
 
-                <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 tracking-tight">
-                  World Class <span className="text-[#67a139]">Amenities</span>
-                </h2>
+              {/* Content */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors duration-300">
+                  {item.name}
+                </h3>
 
-                <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                  Experience thoughtfully designed amenities crafted to elevate your lifestyle.
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {item.description || 
+                    "Designed to enhance comfort and deliver a refined modern lifestyle experience."}
                 </p>
               </div>
 
-              {/* Minimal Modern Grid */}
-              {amenityTextList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {amenityTextList.map((item, index) => {
-                    const name = item.name || item;
-                    return (
-                      <div
-                        key={index}
-                        className="group border border-gray-200 rounded-xl p-8 bg-white transition-all duration-300 hover:border-[#67a139] hover:-translate-y-1"
-                      >
-                        <div className="flex items-start gap-4">
-
-                          {/* Icon */}
-                          <div className="w-10 h-10 flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5 text-[#67a139]" />
-                          </div>
-
-                          {/* Text */}
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-[#67a139] transition-colors duration-300">
-                              {name}
-                            </h3>
-
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                              Designed to enhance comfort and deliver a refined modern lifestyle experience.
-                            </p>
-                          </div>
-
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-center text-gray-500">
-                  No amenities added for this project yet.
-                </p>
-              )}
             </div>
-          </section>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-center text-gray-500">
+        No amenities added for this project yet.
+      </p>
+    )}
+  </div>
+</section>
 
           {/* PRICE SECTION */}
           <section

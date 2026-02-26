@@ -52,11 +52,11 @@ export default function PropertyPopup() {
         </button>
 
         {/* DESKTOP */}
-        <div className="hidden md:block relative w-full h-[480px] lg:h-[560px]">
+        <div className="hidden md:block  ">
           <img
             src="/popup-web.jpeg"
             alt="Property Desktop"
-            className="absolute inset-0 w-full h-full object-cover"
+            className=" w-full "
           />
         </div>
 

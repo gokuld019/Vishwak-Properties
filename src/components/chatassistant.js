@@ -9,11 +9,13 @@ const ChatAssistant = () => {
   const [buttons, setButtons]           = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping]         = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const messagesEndRef = useRef(null);
   const inputRef       = useRef(null);
 
   const API_URL  = process.env.NEXT_PUBLIC_API_URL;
-  const LOGO_URL = '/vlogo.webp'; // 🔁 Replace with your actual logo path
+  const LOGO_URL = '/vlogo.webp';
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,9 +26,26 @@ const ChatAssistant = () => {
     if (isOpen && messages.length === 0) callAPI('hello');
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const toggleChat = () => {
     setIsOpen(p => !p);
     setShowTooltip(false);
+  };
+
+  const scrollToTop = (e) => {
+    e.stopPropagation(); // 🔥 Prevent bubbling
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const callAPI = async (text) => {
@@ -91,7 +110,9 @@ const ChatAssistant = () => {
   return (
     <>
       {/* ── Tooltip ── */}
-      {showTooltip && !isOpen && (
+
+<div>
+        {showTooltip && !isOpen && (
         <div className="vp-tooltip">
           <button className="vp-tooltip-close" onClick={() => setShowTooltip(false)}>
             <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
@@ -105,7 +126,6 @@ const ChatAssistant = () => {
           </div>
         </div>
       )}
-
       {/* ── FAB Button ── */}
       <button className="vp-fab" onClick={toggleChat} aria-label="Toggle chat">
         <div className="vp-fab-ring" />
@@ -121,8 +141,22 @@ const ChatAssistant = () => {
           />
           <span className="vp-fab-fallback">VP</span>
         </div>
-        
       </button>
+</div>
+
+
+
+   {/* ── Scroll To Top Button (OUTSIDE FAB) ── */}
+      {showScrollTop && (
+        <button
+          className="vp-scroll-top"
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
+      )}
+
 
       {/* ── Chat Window ── */}
       {isOpen && (
@@ -256,7 +290,7 @@ const ChatAssistant = () => {
 
         /* ── FAB ── */
         .vp-fab {
-          position: fixed; bottom: 28px; right: 28px;
+          position: fixed; bottom: 96px; right: 28px;
           display: flex; flex-direction: column; align-items: center; gap: 5px;
           background: none; border: none; cursor: pointer; z-index: 9999; padding: 0;
         }
@@ -302,7 +336,8 @@ const ChatAssistant = () => {
 
         /* ── Tooltip ── */
         .vp-tooltip {
-          position: fixed; bottom: 47px; right: 102px;
+          position: fixed; bottom: 106px;
+    right: 96px;
           background: white; border-radius: 16px;
           padding: 14px 18px 14px 14px;
           box-shadow: 0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
@@ -547,6 +582,45 @@ const ChatAssistant = () => {
           margin: 8px 0 0; font-family: 'Inter', sans-serif; letter-spacing: .02em;
         }
 
+        /* ── Scroll To Top Button ── */
+.vp-scroll-top {
+  position: fixed;
+  bottom: 28px;
+  right: 32px; /* positioned left of chat button */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #111827;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+
+.vp-scroll-top:hover {
+  background: #67a139;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(103,161,57,0.5);
+}
+
+/* Mobile Adjust */
+@media (max-width: 480px) {
+  .vp-scroll-top {
+    bottom: 18px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+}
+
         /* ── Mobile ── */
         @media (max-width: 480px) {
 
@@ -561,7 +635,7 @@ const ChatAssistant = () => {
 
   /* Floating Button Position */
   .vp-fab {
-    bottom: 18px;
+    bottom: 85px;
     right: 18px;
   }
 
@@ -601,7 +675,8 @@ const ChatAssistant = () => {
 
   /* Adjust tooltip position */
   .vp-tooltip {
-    right: 80px;
+            right: 69px;
+        bottom: 99px;
     padding: 10px 14px;
   }
 

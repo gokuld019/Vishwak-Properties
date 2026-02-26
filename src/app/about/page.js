@@ -148,9 +148,9 @@ export default function AboutPage() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-          <TeamCard name="Arjun Kumar" role="Founder & CEO" />
-          <TeamCard name="Priya Sharma" role="Design Head" />
-          <TeamCard name="Rohit Verma" role="Project Director" />
+          <TeamCard name="V.E SELVAM" role="Managing Partner" />
+          <TeamCard name="Rama Prabha" role="Managing Partner" />
+          <TeamCard name="Devi Manikandan" role="Senior Sales Head" />
         </div>
       </section>
 
