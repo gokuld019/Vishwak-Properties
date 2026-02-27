@@ -11,10 +11,10 @@ const API_BASE = `${process.env.NEXT_PUBLIC_API_LIVE_URL}`;
 
 /* ✅ UPDATED URL ONLY */
 const ongoingProjects = [
-  ["Aira Avenue", `${API_BASE}/project-details/1`],
-  ["ALA Garden – Vandalur", `${API_BASE}/project-details/12`],
-  ["SS Astron – OMR", `${API_BASE}/project-details/5`],
-  ["VK Aurora – Kelambakkam", `${API_BASE}/project-details/10`],
+  ["Aira Avenue", `/project-details/1`],
+  ["ALA Garden – Vandalur", `/project-details/12`],
+  ["SS Astron – OMR", `/project-details/5`],
+  ["VK Aurora – Kelambakkam", `/project-details/10`],
 ];
 
 const socialLinks = [
