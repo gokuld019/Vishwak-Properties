@@ -366,57 +366,60 @@ const ChatAssistant = () => {
         .vp-bot-avatar-fallback { display:none; font-size:11px; font-weight:800; color:#2d5a18; }
 
         /* ── Msg group ── */
-        .vp-msg-group { display:flex; flex-direction:column; max-width:78%; }
+        .vp-msg-group { display:flex; flex-direction:column; max-width:87%; }
         .vp-row--user .vp-msg-group { align-items:flex-end; }
         .vp-row--bot  .vp-msg-group { align-items:flex-start; }
 
-        /* ── Bubbles ── */
-        .vp-bubble { padding: 10px 3px; border-radius:18px; font-size:13.5px; line-height:1.65; word-break:break-word; }
-
-        .vp-bubble--user {
-          background:linear-gradient(135deg,#5ea832,#2d6614);
-          color:white;
-          border-bottom-right-radius:4px;
-          box-shadow:0 4px 14px rgba(94,168,50,.35);
-        }
-
-        .vp-bubble--bot {
-          background:white;
-          color:#1e3a10;
-          border-bottom-left-radius:4px;
-          box-shadow:0 2px 10px rgba(0,0,0,.07);
-          border:1px solid rgba(0,0,0,.05);
-        }
-        /* ───────────────────────────────────────── */
-/*           TABLE — FINAL STABLE FIX       */
+      /* ───────────────────────────────────────── */
+/*           BUBBLE — FINAL FIX             */
 /* ───────────────────────────────────────── */
 
-/* Only apply scroll when table exists */
-.vp-bubble--bot table {
-  display: block;
-  width: 100%;
-  min-width: 420px;
-  border-collapse: collapse;
-  font-size: 13px;
-  table-layout: auto;
+.vp-bubble {
+  padding: 16px 20px;   /* ✅ proper base padding */
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  word-break: break-word;
 }
 
-/* Wrap table inside scroll container */
+/* User bubble */
+.vp-bubble--user {
+  background: linear-gradient(135deg,#5ea832,#2d6614);
+  color: white;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 14px rgba(94,168,50,.35);
+}
+
+/* Bot bubble */
 .vp-bubble--bot {
+  background: white;
+  color: #1e3a10;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  border: 1px solid rgba(0,0,0,.05);
+
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 9px 4px;
+}
+
+/* ───────────────────────────────────────── */
+/*           TABLE — PREMIUM SPACING        */
+/* ───────────────────────────────────────── */
+
+.vp-bubble--bot table {
+  width: 100%;
+  min-width: 480px;   /* little more room */
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 10px;
 }
 
 /* Header */
-.vp-bubble--bot table thead tr {
-  background: linear-gradient(to right, #f0f7ea, #e6f3de);
-  border-bottom: 2px solid #d6eac8;
-}
-
 .vp-bubble--bot table th {
-  padding: 9px 12px;
+  padding: 18px 22px;   /* ✅ larger */
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 14px;
   text-align: left;
   color: #2d6614;
   white-space: nowrap;
@@ -424,10 +427,10 @@ const ChatAssistant = () => {
 
 /* Body cells */
 .vp-bubble--bot table td {
-  padding: 9px 12px;
-  font-size: 13px;
+  padding: 18px 22px;   /* ✅ larger */
+  font-size: 14px;
   color: #1e3a10;
-  white-space: nowrap;   /* prevents ₹ from breaking */
+  white-space: nowrap;
   vertical-align: middle;
 }
 
@@ -437,48 +440,27 @@ const ChatAssistant = () => {
   transition: background 0.2s ease;
 }
 
-.vp-bubble--bot table tbody tr:last-child {
-  border-bottom: none;
-}
-
 .vp-bubble--bot table tbody tr:hover {
   background: #f8fcf4;
 }
 
 /* Column alignment */
-
-/* Serial number */
 .vp-bubble--bot table th:nth-child(1),
 .vp-bubble--bot table td:nth-child(1) {
-  width: 40px;
+  width: 60px;
   text-align: center;
   font-weight: 600;
   color: #9ab889;
 }
 
-/* Plot column */
-.vp-bubble--bot table th:nth-child(2),
-.vp-bubble--bot table td:nth-child(2) {
-  font-weight: 600;
-}
-
-/* Sq.ft */
 .vp-bubble--bot table th:nth-child(3),
-.vp-bubble--bot table td:nth-child(3) {
-  text-align: right;
-  color: #3d6b21;
-}
-
-/* Price — STRICT NO BREAK */
+.vp-bubble--bot table td:nth-child(3),
 .vp-bubble--bot table th:nth-child(4),
 .vp-bubble--bot table td:nth-child(4) {
   text-align: right;
-  font-weight: 700;
-  color: #2d6614;
-  white-space: nowrap;
 }
 
-/* Scrollbar styling */
+/* Scrollbar */
 .vp-bubble--bot::-webkit-scrollbar {
   height: 4px;
 }

@@ -32,52 +32,51 @@ export default function Header() {
   const [mobileDropdown, setMobileDropdown] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
-
-  const [menuData, setMenuData] = useState({
-    plots: [],
-    villas: [],
-    completedPlots: [],
-    completedVillas: [],
-  });
+const [ongoingProjects, setOngoingProjects] = useState([]);
+const [completedProjects, setCompletedProjects] = useState([]);
+  
 
   const normalize = (v) => (v ? v.toLowerCase().trim() : "");
 
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const [ongoingRes, completedRes] = await Promise.all([
-          fetch(`${API_BASE}/project-details/ongoing`),
-          fetch(`${API_BASE}/project-details/completed`),
-        ]);
+  const fetchOngoing = async () => {
+  if (ongoingProjects.length > 0) return;
 
-        const ongoingJson = await ongoingRes.json();
-        const completedJson = await completedRes.json();
+  try {
+    const res = await fetch(`${API_BASE}/project-details/ongoing`);
+    const json = await res.json();
+    setOngoingProjects(json.data || []);
+  } catch (err) {
+    console.error("Ongoing fetch error:", err);
+  }
+};
 
-        const ongoing = ongoingJson.data || [];
-        const completed = completedJson.data || [];
+const fetchCompleted = async () => {
+  if (completedProjects.length > 0) return;
 
-        const plots = ongoing.filter((p) =>
-          normalize(p.category).includes("plot")
-        );
-        const villas = ongoing.filter((p) =>
-          normalize(p.category).includes("villa")
-        );
+  try {
+    const res = await fetch(`${API_BASE}/project-details/completed`);
+    const json = await res.json();
+    setCompletedProjects(json.data || []);
+  } catch (err) {
+    console.error("Completed fetch error:", err);
+  }
+};
 
-        const completedPlots = completed.filter((p) =>
-          normalize(p.category).includes("plot")
-        );
-        const completedVillas = completed.filter((p) =>
-          normalize(p.category).includes("villa")
-        );
+const plots = ongoingProjects.filter((p) =>
+  normalize(p.category).includes("plot")
+);
 
-        setMenuData({ plots, villas, completedPlots, completedVillas });
-      } catch (err) {
-        console.error("Menu fetch error:", err);
-      }
-    };
+const villas = ongoingProjects.filter((p) =>
+  normalize(p.category).includes("villa")
+);
 
-    fetchMenu();
-  }, []);
+const completedPlots = completedProjects.filter((p) =>
+  normalize(p.category).includes("plot")
+);
+
+const completedVillas = completedProjects.filter((p) =>
+  normalize(p.category).includes("villa")
+);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -95,7 +94,6 @@ export default function Header() {
     );
   }, [headerHeight]);
 
-  const { plots, villas, completedPlots, completedVillas } = menuData;
 
   const dropdownAnimation = {
     initial: { opacity: 0, y: -8, scale: 0.96 },
@@ -171,7 +169,10 @@ export default function Header() {
                   <li
                     key={link.name}
                     className="relative cursor-pointer group"
-                    onMouseEnter={() => setOpenMenu("ONGOING")}
+                    onMouseEnter={() => {
+                    setOpenMenu("ONGOING");
+                    fetchOngoing();
+                    }}                    
                     onMouseLeave={() => {
                       setOpenMenu(null);
                       setHoveredItem(null);
@@ -222,8 +223,10 @@ export default function Header() {
                   <li
                     key={link.name}
                     className="relative cursor-pointer group"
-                    onMouseEnter={() => setOpenMenu("COMPLETED")}
-                    onMouseLeave={() => {
+onMouseEnter={() => {
+  setOpenMenu("COMPLETED");
+  fetchCompleted();
+}}                    onMouseLeave={() => {
                       setOpenMenu(null);
                       setHoveredItem(null);
                     }}
@@ -320,9 +323,11 @@ export default function Header() {
             return (
               <div key={link.name} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <button
-                  onClick={() =>
-                    setMobileDropdown(mobileDropdown === "ONGOING" ? null : "ONGOING")
-                  }
+                 onClick={() => {
+  const next = mobileDropdown === "ONGOING" ? null : "ONGOING";
+  setMobileDropdown(next);
+  if (next === "ONGOING") fetchOngoing();
+}}
                   className="w-full flex items-center justify-between px-5 py-4
                              font-semibold text-[15px]
                              bg-gradient-to-r from-[#67a139]/10 to-[#8bc34a]/10"

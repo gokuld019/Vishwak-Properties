@@ -69,6 +69,30 @@ export default function HeroSection() {
   const [commercialBuy, setCommercialBuy] = useState(null);
   const [commercialLease, setCommercialLease] = useState(null);
 
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.15 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-cycle active card
+  useEffect(() => {
+    if (!recentProjects.length) return;
+    const t = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % recentProjects.length);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [recentProjects.length]);
+
+  const hasProjects = Array.isArray(recentProjects) && recentProjects.length > 0;
+
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
 
@@ -463,11 +487,8 @@ export default function HeroSection() {
                     className="flex-1 outline-none bg-transparent cursor-pointer"
                   >
                     <option value="">Select Inquiry Type</option>
-                    <option value="apartments">Apartments</option>
                     <option value="villas">Villas</option>
                     <option value="plots">Plots</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="general">General Inquiry</option>
                   </select>
                 </div>
 
@@ -703,45 +724,32 @@ export default function HeroSection() {
         </div>
       </section>
 
-      {/* Recently Updated Projects - Fully Responsive */}
-<section className="w-full bg-[#f5f5f5] py-10 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-  <div className="max-w-[1280px] mx-auto">
-    
-    {/* Heading */}
-    <div className="text-center mb-8 sm:mb-10 md:mb-14">
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-        Recently Updated <br />
-        <span className="font-extrabold text-3xl sm:text-4xl md:text-5xl text-[#67a139]">
-          Projects
-        </span>
-      </h2>
+{/* Recently Updated - Responsive Banner */}
+<section className="w-full">
+  {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
+    <Link
+      href={`/project-details/${recentProjects[0].projectId}`}
+      className="block w-full"
+    >
+     {/* Desktop Banner */}
+<div
+  className="hidden md:block w-full h-[400px] lg:h-[610px] xl:h-[807px] bg-cover bg-center cursor-pointer"
+  style={{ backgroundImage: "url('/updatebanner.png')" }}
+/>
 
-      <p className="text-gray-600 mt-2 sm:mt-3 text-xs sm:text-sm md:text-base">
-        Discover the newest updates across our top-performing projects.
-      </p>
+
+
+      {/* Mobile Banner */}
+      <div
+        className="block md:hidden h-[500px] bg-cover bg-center cursor-pointer;"
+        style={{ backgroundImage: "url('/mobile.png')" }}
+      />
+    </Link>
+  ) : (
+    <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 text-gray-500">
+      No recent projects available.
     </div>
-
-    {/* Banner Image */}
-    {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
-      <Link
-        href={`/project-details/${recentProjects[0].projectId}`}
-        className="block w-full"
-      >
-        <Image
-          src="/homebanner.jpeg"
-          alt="Recently Updated Project"
-          width={1920}
-          height={1080}
-          priority
-          className="w-full h-auto rounded-xl shadow-md"
-        />
-      </Link>
-    ) : (
-      <div className="text-center text-gray-500 py-10">
-        No recent projects available.
-      </div>
-    )}
-  </div>
+  )}
 </section>
 
       {/* Amenities Section - Mobile Responsive */}
@@ -816,30 +824,13 @@ export default function HeroSection() {
                 <span className="text-xs sm:text-sm font-medium text-[#67a139]">
                   ARTICLES
                 </span>
-                <svg
-                  className="w-4 h-4 text-gray-700"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+               
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Discover inspiration and trends
               </h2>
             </div>
-            <Link href="/articles" className="mt-4 md:mt-0">
-              <button className="group bg-[#67a139] hover:bg-yellow-500 text-white font-bold px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 text-xs sm:text-sm md:text-base">
-                View All Posts
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </Link>
+            
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
             {articles.map((article, index) => (
@@ -1199,11 +1190,8 @@ export default function HeroSection() {
                   className="peer w-full border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 bg-white text-gray-900 focus:border-gray-900 outline-none"
                 >
                   <option value="">Select Inquiry Type *</option>
-                  <option value="apartments">Apartments</option>
                   <option value="villas">Villas</option>
                   <option value="plots">Plots</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="general">General Inquiry</option>
                 </select>
                 <label className="absolute left-3 sm:left-4 -top-2 bg-white px-1 text-xs sm:text-sm text-gray-600">
                   Inquiry Type *

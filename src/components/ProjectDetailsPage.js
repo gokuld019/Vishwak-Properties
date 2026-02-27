@@ -149,7 +149,6 @@ export default function ProjectDetailsPage({ projectId }) {
     { id: "overview", label: "OVERVIEW" },
     { id: "why", label: "WHY" },
     { id: "location", label: "LOCATION HIGHLIGHTS" },
-    { id: "floor", label: "FLOOR PLANS" },
     { id: "siteplan", label: "SITE PLAN & PLOT AREA STATEMENT" },
     { id: "amenities", label: "AMENITIES" },
     { id: "price", label: "PRICE LIST" },
@@ -2743,11 +2742,8 @@ export default function ProjectDetailsPage({ projectId }) {
                       className="flex-1 outline-none text-gray-900 bg-transparent cursor-pointer text-sm sm:text-base min-w-0"
                     >
                       <option value="">Select Inquiry Type</option>
-                      <option value="apartments">Apartments</option>
                       <option value="villas">Villas</option>
                       <option value="plots">Plots</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="general">General Inquiry</option>
                     </select>
                   </div>
                 </div>
