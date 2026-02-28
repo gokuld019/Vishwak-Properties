@@ -374,20 +374,22 @@ onMouseEnter={() => {
             return (
               <div key={link.name} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <button
-                  onClick={() =>
-                    setMobileDropdown(mobileDropdown === "COMPLETED" ? null : "COMPLETED")
-                  }
-                  className="w-full flex items-center justify-between px-5 py-4
-                             font-semibold text-[15px]
-                             bg-gradient-to-r from-blue-50 to-indigo-50"
-                >
-                  {link.name}
-                  <ChevronDown
-                    className={`w-5 h-5 transition-transform ${
-                      mobileDropdown === "COMPLETED" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+  onClick={() => {
+    const next = mobileDropdown === "COMPLETED" ? null : "COMPLETED";
+    setMobileDropdown(next);
+    if (next === "COMPLETED") fetchCompleted();
+  }}
+  className="w-full flex items-center justify-between px-5 py-4
+             font-semibold text-[15px]
+             bg-gradient-to-r from-blue-50 to-indigo-50"
+>
+  {link.name}
+  <ChevronDown
+    className={`w-5 h-5 transition-transform ${
+      mobileDropdown === "COMPLETED" ? "rotate-180" : ""
+    }`}
+  />
+</button>
 
                 <AnimatePresence>
                   {mobileDropdown === "COMPLETED" && (
