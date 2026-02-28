@@ -733,17 +733,17 @@ export default function HeroSection() {
     >
      {/* Desktop Banner */}
 <div
-  className="hidden md:block w-full h-[400px] lg:h-[610px] xl:h-[807px] bg-cover bg-center cursor-pointer"
+  className="hidden md:block w-full 
+             aspect-[1920/807] 
+             bg-cover bg-center cursor-pointer"
   style={{ backgroundImage: "url('/updatebanner.png')" }}
 />
 
-
-
-      {/* Mobile Banner */}
-      <div
-        className="block md:hidden h-[500px] bg-cover bg-center cursor-pointer;"
-        style={{ backgroundImage: "url('/mobile.png')" }}
-      />
+{/* Mobile Banner */}
+<div
+  className="block md:hidden h-[500px] bg-cover bg-center cursor-pointer"
+  style={{ backgroundImage: "url('/mobile.png')" }}
+/>
     </Link>
   ) : (
     <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 text-gray-500">
