@@ -361,7 +361,7 @@ export default function ProjectDetailsPage({ projectId }) {
     const fetchAmenities = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE}/api/project-amenities/${projectId}`
+          `${API_BASE}/project-amenities/${projectId}`
         );
 
         setAmenities(res.data.amenities || []);
