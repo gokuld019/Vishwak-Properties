@@ -2045,7 +2045,7 @@ onClick={() => {
           )}
 {/* Modern Sleek Lead Popup */}
 {showLeadPopup && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
     {/* Backdrop with blur */}
     <motion.div
       initial={{ opacity: 0 }}
@@ -2061,24 +2061,21 @@ onClick={() => {
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.9, y: 20, opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-      className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
+      className="relative w-full sm:max-w-md bg-white/90 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
     >
-      {/* Decorative top accent */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#67a139] via-yellow-400 to-[#67a139]" />
-
-      <div className="p-8">
+      <div className="p-6 sm:p-8">
         {/* Header */}
         <div className="text-center mb-6">
-          <h3 className="text-3xl font-bold text-gray-900 mb-2">
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Get Brochure
           </h3>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs sm:text-sm">
             Enter your details to instantly download the brochure
           </p>
         </div>
 
         {/* Form */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {/* Name Input */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -2089,7 +2086,7 @@ onClick={() => {
               placeholder="Your Name"
               value={leadForm.name}
               onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50 text-sm"
             />
           </div>
 
@@ -2099,15 +2096,15 @@ onClick={() => {
               <Phone className="h-5 w-5 text-gray-400" />
             </div>
             <input
-  type="tel"
-  placeholder="10-digit mobile number"
-  value={leadForm.phone}
-  onChange={(e) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-    setLeadForm({ ...leadForm, phone: value });
-  }}
-  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50"
-/>
+              type="tel"
+              placeholder="10-digit mobile number"
+              value={leadForm.phone}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                setLeadForm({ ...leadForm, phone: value });
+              }}
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50 text-sm"
+            />
           </div>
 
           {/* Hidden location field (optional) */}
@@ -2120,14 +2117,14 @@ onClick={() => {
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => setShowLeadPopup(false)}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
             >
               Cancel
             </button>
             <button
               onClick={openOtpWidget}
               disabled={!leadForm.phone || leadForm.phone.length < 10}
-              className="flex-1 bg-gradient-to-r from-[#67a139] to-[#4a8f2f] text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="flex-1 bg-gradient-to-r from-[#67a139] to-[#4a8f2f] text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
             >
               <Send className="w-4 h-4" />
               Verify & Download
