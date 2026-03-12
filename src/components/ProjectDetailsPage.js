@@ -2045,8 +2045,8 @@ onClick={() => {
           )}
 {/* Modern Sleek Lead Popup */}
 {showLeadPopup && (
-  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-    {/* Backdrop with blur */}
+<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop with blur */}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -2061,8 +2061,16 @@ onClick={() => {
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.9, y: 20, opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-      className="relative w-full sm:max-w-md bg-white/90 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
-    >
+className="
+relative
+w-full
+max-w-md
+bg-white
+rounded-2xl
+shadow-2xl
+max-h-[90vh]
+overflow-y-auto
+"    >
       <div className="p-6 sm:p-8">
         {/* Header */}
         <div className="text-center mb-6">
@@ -2114,23 +2122,62 @@ onClick={() => {
           />
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setShowLeadPopup(false)}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={openOtpWidget}
-              disabled={!leadForm.phone || leadForm.phone.length < 10}
-              className="flex-1 bg-gradient-to-r from-[#67a139] to-[#4a8f2f] text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
-            >
-              <Send className="w-4 h-4" />
-              Verify & Download
-            </button>
-          </div>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+
+  {/* Cancel */}
+  <button
+    onClick={() => setShowLeadPopup(false)}
+    className="
+      w-full
+      sm:w-1/2
+      px-4
+      py-3
+      border
+      border-gray-300
+      text-gray-700
+      rounded-xl
+      font-semibold
+      hover:bg-gray-50
+      transition
+      text-sm
+    "
+  >
+    Cancel
+  </button>
+
+  {/* Verify */}
+  <button
+    onClick={openOtpWidget}
+    disabled={!leadForm.phone || leadForm.phone.length < 10}
+    className="
+      w-full
+      sm:w-1/2
+      bg-gradient-to-r
+      from-[#67a139]
+      to-[#4a8f2f]
+      text-white
+      py-3
+      rounded-xl
+      font-semibold
+      shadow-lg
+      hover:shadow-xl
+      disabled:opacity-50
+      disabled:cursor-not-allowed
+      transition-all
+      flex
+      items-center
+      justify-center
+      gap-2
+      text-sm
+    "
+  >
+    <Send className="w-4 h-4" />
+    Verify & Download
+  </button>
+
+</div>
+</div>
+
 
         {/* Footer note */}
         <p className="text-xs text-gray-400 text-center mt-6">
