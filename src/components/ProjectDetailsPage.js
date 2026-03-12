@@ -1217,7 +1217,8 @@ sphereRef.current = sphere;
   };
 
 const openOtpWidget = () => {
-  const rawPhone = leadForm.phone.replace(/\D/g, ''); // Remove all non-digits
+  const rawPhone = leadForm.phone.replace(/\D/g, '');
+
   if (!rawPhone || rawPhone.length !== 10) {
     Swal.fire({
       icon: 'warning',
@@ -1226,7 +1227,6 @@ const openOtpWidget = () => {
     return;
   }
 
-  // Format with India country code
   const formattedPhone = `+91${rawPhone}`;
   const nameValue = leadForm.name.trim() || 'Brochure User';
   const locationValue = leadForm.location || window.location.pathname;
@@ -1234,19 +1234,18 @@ const openOtpWidget = () => {
   const configuration = {
     widgetId: '36636b6a5932383031343935',
     tokenAuth: '499574TSbqywhw69b149f1P1',
-    identifier: formattedPhone,   // ✅ Now sends +91XXXXXXXXXX
+    identifier: formattedPhone,
+
     success: async (data) => {
       console.log('OTP VERIFIED:', data);
 
       try {
-        const res = await axios.post(`${API_BASE}/contact/widget-lead`, {
+        await axios.post(`${API_BASE}/contact/widget-lead`, {
           name: nameValue,
           email: 'otp@lead.com',
-          phone: formattedPhone,   // Save formatted phone
+          phone: formattedPhone,
           location: locationValue,
         });
-
-        console.log('LEAD SAVED:', res.data);
 
         localStorage.setItem('lead_verified', 'true');
         setLeadVerified(true);
@@ -1258,23 +1257,21 @@ const openOtpWidget = () => {
           showConfirmButton: false,
         });
 
-        setShowLeadPopup(false);
-
         if (brochureUrl) {
           window.open(brochureUrl, '_blank');
         }
 
         setLeadForm({ name: '', phone: '', location: '' });
+
       } catch (err) {
-        console.log('SAVE ERROR:', err?.response?.data);
         Swal.fire({
           icon: 'error',
-          title: err?.response?.data?.message || 'Lead Save Failed',
+          title: 'Lead Save Failed',
         });
       }
     },
-    failure: (error) => {
-      console.log('OTP FAILED:', error);
+
+    failure: () => {
       Swal.fire({
         icon: 'error',
         title: 'OTP Verification Failed',
@@ -1282,7 +1279,13 @@ const openOtpWidget = () => {
     },
   };
 
-  window.initSendOTP(configuration);
+  // ⭐⭐ IMPORTANT FLOW ⭐⭐
+
+  setShowLeadPopup(false);   // CLOSE popup first
+
+  setTimeout(() => {
+    window.initSendOTP(configuration);   // THEN open OTP
+  }, 300);
 };
 
   const handleEnquirySubmit = async (e) => {
@@ -2045,7 +2048,7 @@ onClick={() => {
           )}
 {/* Modern Sleek Lead Popup */}
 {showLeadPopup && (
-<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop with blur */}
     <motion.div
       initial={{ opacity: 0 }}
