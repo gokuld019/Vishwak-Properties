@@ -8,7 +8,6 @@ import {
   Trash2,
   Upload,
   Save,
-  Edit3,
   Eye,
   Image as ImageIcon,
   FileText,
@@ -22,11 +21,8 @@ import {
   CheckSquare,
   ChevronRight,
   Search,
-  Filter,
   Download,
   Users,
-  Globe,
-  Smartphone,
   X,
   FolderOpen,
   Layers,
@@ -38,11 +34,27 @@ import {
   FilePieChart,
   Bell,
   Menu,
-  LogOut
+  LogOut,
+  Edit,
+  ChevronDown,
+  CheckCircle,
+  Clock,
+  Globe,
+  Navigation,
+  Maximize2,
+  RotateCw,
+  Camera,
+  PlayCircle,
+  Map,
+  Move,
+  LocateFixed,
 } from "lucide-react";
 
-const API = "http://localhost:5000/api";
-const BASE_URL = "http://localhost:5000";
+const API = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+
 
 /* =========================
    MODERN UI COMPONENTS
@@ -129,7 +141,7 @@ const Section = ({ title, subtitle, icon: Icon, children }) => (
   </div>
 );
 
-const Button = ({ children, variant = "primary", icon: Icon, onClick, className = "", ...props }) => {
+const Button = ({ children, variant = "primary", icon: Icon, onClick, className = "", size = "md", ...props }) => {
   const variants = {
     primary: "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl",
     secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300",
@@ -137,11 +149,15 @@ const Button = ({ children, variant = "primary", icon: Icon, onClick, className 
     danger: "bg-red-600 hover:bg-red-700 text-white",
     outline: "bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-50"
   };
-
+  const sizes = {
+    sm: "px-3 py-2 text-sm",
+    md: "px-5 py-3",
+    lg: "px-6 py-4 text-lg"
+  };
   return (
     <button
       onClick={onClick}
-      className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center ${variants[variant]} ${className}`}
+      className={`rounded-lg font-medium transition-all duration-200 flex items-center justify-center ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {Icon && <Icon className={`w-4 h-4 ${children ? 'mr-2' : ''}`} />}
@@ -150,7 +166,7 @@ const Button = ({ children, variant = "primary", icon: Icon, onClick, className 
   );
 };
 
-const FileUpload = ({ label, accept, onChange, icon: Icon }) => (
+const FileUpload = ({ label, accept, onChange, icon: Icon, multiple = false }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors duration-200 bg-gray-50 hover:bg-blue-50">
@@ -158,6 +174,7 @@ const FileUpload = ({ label, accept, onChange, icon: Icon }) => (
         type="file"
         accept={accept}
         onChange={onChange}
+        multiple={multiple}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
       <div className="flex flex-col items-center">
@@ -250,7 +267,16 @@ export default function AdminCMS() {
     topTitle: "",
     topLocation: "",
     topDescription: "",
+    heroImageDesktop: null,
+    heroImageMobile: null,
+    image1: null,
+    image2: null,
+    image3: null,
+    image4: null,
+    sitePlanImage: null,
+    plotAreaStatementImage: null,
   });
+  const [overviewFiles, setOverviewFiles] = useState({});
 
   /* WHY */
   const [why, setWhy] = useState([]);
@@ -283,9 +309,18 @@ export default function AdminCMS() {
     image: null,
   });
 
-  /* AMENITIES */
-  const [amenities, setAmenities] = useState([]);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
+/* PROJECT AMENITIES */
+const [projectAmenities, setProjectAmenities] = useState([]);
+const [projectAmenityForm, setProjectAmenityForm] = useState({
+  name: "",
+  description: "",
+});
+
+const [editingAmenityId, setEditingAmenityId] = useState(null);
+const [editingAmenityForm, setEditingAmenityForm] = useState({
+  name: "",
+  description: "",
+});
 
   /* PRICE */
   const [prices, setPrices] = useState([]);
@@ -322,7 +357,6 @@ export default function AdminCMS() {
     fileUrl: "",
     thumbnailUrl: "",
   });
-
   const [brochureFiles, setBrochureFiles] = useState({
     brochure: null,
     thumbnail: null,
@@ -346,6 +380,30 @@ export default function AdminCMS() {
     icon: null,
   });
 
+
+  /* PROJECT MEDIA (Cinematic + Route Map) */
+const [projectMedia, setProjectMedia] = useState({
+  cinematic360: "",
+  routeMap: "",
+});
+
+const [mediaFiles, setMediaFiles] = useState({
+  cinematic360: null,
+});
+
+const [editingPriceId, setEditingPriceId] = useState(null);
+const [editingPriceForm, setEditingPriceForm] = useState({
+  unit: "",
+  price: "",
+});
+
+const [selectedProjectId, setSelectedProjectId] = useState("");
+const [brochureFile, setBrochureFile] = useState(null);
+const [thumbnailFile, setThumbnailFile] = useState(null);
+
+const [heroDesktopFile, setHeroDesktopFile] = useState(null);
+const [heroMobileFile, setHeroMobileFile] = useState(null);
+
   /* LOAD PROJECT LIST */
   useEffect(() => {
     const fetchProjects = async () => {
@@ -355,10 +413,9 @@ export default function AdminCMS() {
         const projectsData = Array.isArray(res.data?.data) ? res.data.data : [];
         setProjects(projectsData);
         
-        // Update stats
         setStats({
           totalProjects: projectsData.length,
-          activeProjects: projectsData.filter(p => p.status === 'active').length,
+          activeProjects: projectsData.filter(p => p.status === 'ongoing').length,
           totalImages: projectsData.reduce((acc, p) => acc + (p.imageCount || 0), 0),
           recentUpdates: projectsData.filter(p => {
             const weekAgo = new Date();
@@ -384,36 +441,35 @@ export default function AdminCMS() {
 
     try {
       const [
-        overviewRes,
-        whyRes,
-        locRes,
-        floorRes,
-        specRes,
-        updateRes,
-        amenityRes,
-        projectAmenityRes,
-        priceRes,
-        smartRes,
-        galleryRes,
-        statsRes,
-        brochureRes,
-      ] = await Promise.all([
-        axios.get(`${API}/project-details/${id}`),
-        axios.get(`${API}/why/${id}`),
-        axios.get(`${API}/location/${id}`),
-        axios.get(`${API}/floorplans/${id}`),
-        axios.get(`${API}/specifications/${id}`),
-        axios.get(`${API}/construction-updates/${id}`),
-        axios.get(`${API}/amenities`),
-        axios.get(`${API}/project-amenities/${id}`),
-        axios.get(`${API}/pricelist/${id}`),
-        axios.get(`${API}/smart-investment/${id}`),
-        axios.get(`${API}/gallery/${id}`),
-        axios.get(`${API}/project-stats/${id}`),
-        axios.get(`${API}/brochure/${id}`),
-      ]);
+  overviewRes,
+  whyRes,
+  locRes,
+  floorRes,
+  specRes,
+  updateRes,
+  projectAmenityRes,   // ✅ ONLY ONE
+  priceRes,
+  smartRes,
+  galleryRes,
+  statsRes,
+  brochureRes,
+  mediaRes,
+] = await Promise.all([
+  axios.get(`${API}/project-details/${id}`),
+  axios.get(`${API}/why/${id}`),
+  axios.get(`${API}/location/${id}`),
+  axios.get(`${API}/floorplans/${id}`),
+  axios.get(`${API}/specifications/${id}`),
+  axios.get(`${API}/construction-updates/${id}`),
+  axios.get(`${API}/project-amenities/${id}`),  // ✅ keep only this one
+  axios.get(`${API}/pricelist/${id}`),
+  axios.get(`${API}/smart-investment/${id}`),
+  axios.get(`${API}/gallery/${id}`),
+  axios.get(`${API}/project-stats/${id}`),
+  axios.get(`${API}/brochure/${id}`),
+  axios.get(`${API}/project-media/${id}`),
+]);
 
-      // Set all data...
       const o = overviewRes.data || {};
       setOverview({
         name: o.name || "",
@@ -425,53 +481,59 @@ export default function AdminCMS() {
         topTitle: o.topTitle || "",
         topLocation: o.topLocation || "",
         topDescription: o.topDescription || "",
+        heroImageDesktop: o.heroImageDesktop || null,
+        heroImageMobile: o.heroImageMobile || null,
+        image1: o.image1 || null,
+        image2: o.image2 || null,
+        image3: o.image3 || null,
+        image4: o.image4 || null,
+        sitePlanImage: o.sitePlanImage || null,
+        plotAreaStatementImage: o.plotAreaStatementImage || null,
       });
 
       setWhy(
         Array.isArray(whyRes.data)
           ? whyRes.data.map((p) => ({
+              id: p.id,
               title: p.title || "",
               description: p.description || "",
+              iconKey: p.iconKey || "MapPin",
+              sortOrder: p.sortOrder,
             }))
           : []
       );
 
       const loc = Array.isArray(locRes.data) ? locRes.data : [];
-
       setConnectivity(
         loc
           .filter((l) => l.type === "connectivity")
-          .map((l, i) => ({
+          .map((l) => ({
             id: l.id,
             name: l.name || "",
             distance: l.distance || "",
             time: l.time || "",
-            sortOrder: l.sortOrder || i + 1,
+            sortOrder: l.sortOrder,
           }))
       );
-
       setFacilities(
         loc
           .filter((l) => l.type === "facility")
-          .map((l, i) => ({
+          .map((l) => ({
             id: l.id,
             name: l.name || "",
-            sortOrder: l.sortOrder || i + 1,
+            sortOrder: l.sortOrder,
           }))
       );
 
       setFloors(Array.isArray(floorRes.data) ? floorRes.data : []);
       setSpecs(specRes.data?.specifications || []);
       setUpdates(updateRes.data?.updates || []);
-      setAmenities(Array.isArray(amenityRes.data) ? amenityRes.data : []);
-      setSelectedAmenities(
-        Array.isArray(projectAmenityRes.data?.data)
-          ? projectAmenityRes.data.data.map((a) => a.amenityId)
-          : []
-      );
-      setPrices(priceRes.data?.priceList || []);
-
-      /* SMART INVESTMENT */
+     
+setPrices(
+  Array.isArray(priceRes.data?.priceList)
+    ? priceRes.data.priceList
+    : []
+);
       const si = smartRes.data || {};
       setSmartInvestment({
         titleLine1: si.titleLine1 || "",
@@ -480,21 +542,23 @@ export default function AdminCMS() {
         tagline: si.tagline || "",
         mainDescription: si.mainDescription || "",
       });
-
-      /* GALLERY */
+setProjectAmenities(
+  Array.isArray(projectAmenityRes.data.amenities)
+    ? projectAmenityRes.data.amenities
+    : []
+);
       setGallery(Array.isArray(galleryRes.data?.gallery) ? galleryRes.data.gallery : []);
 
-      /* PROJECT STATS */
-      const stats = statsRes?.data?.stats || {};
+      const s = statsRes?.data?.stats || {};
       setProjectStats({
-        totalUnits: stats.totalUnits || "",
-        sqftRange: stats.sqftRange || "",
-        saleableArea: stats.saleableArea || "",
-        floors: stats.floors || "",
-        badgeText: stats.badgeText || "",
+        totalUnits: s.totalUnits || "",
+        sqftRange: s.sqftRange || "",
+        saleableArea: s.saleableArea || "",
+        floors: s.floors || "",
+        badgeText: s.badgeText || "",
       });
 
-      /* BROCHURE */
+        /* ===== BROCHURE ===== */
       const b = brochureRes.data || {};
       setBrochure({
         title: b.title || "",
@@ -502,17 +566,50 @@ export default function AdminCMS() {
         thumbnailUrl: b.thumbnailUrl ? getImageUrl(b.thumbnailUrl) : "",
       });
 
+      /* ===== PROJECT MEDIA ===== */
+      const m = mediaRes?.data?.data || {};
+
+      setProjectMedia({
+        cinematic360: m.cinematic360
+          ? getImageUrl(m.cinematic360)
+          : "",
+        routeMap: m.routeMap || "",
+      });
+
     } catch (error) {
       console.error("Error loading project:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to load project data'
+        icon: "error",
+        title: "Error",
+        text: "Failed to load project data",
       });
     } finally {
       setLoading(false);
     }
   };
+
+
+const saveProjectMedia = async () => {
+  if (!projectId) return;
+
+  try {
+    const fd = new FormData();
+    fd.append("projectId", projectId);
+    fd.append("routeMap", projectMedia.routeMap);
+
+    if (mediaFiles.cinematic360) {
+      fd.append("cinematic360", mediaFiles.cinematic360);
+    }
+
+    await axios.post(`${API}/project-media`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    toast("Project media saved successfully");
+  } catch (error) {
+    toast("Error saving project media", "error");
+  }
+};
 
   /* LOAD HOME BANNERS & AMENITIES */
   useEffect(() => {
@@ -525,7 +622,6 @@ export default function AdminCMS() {
     try {
       const [bannersRes, amenitiesRes] = await Promise.all([
         axios.get(`${API}/banners`),
-        axios.get(`${API}/amenities`),
       ]);
       
       setBanners(Array.isArray(bannersRes.data) ? bannersRes.data : []);
@@ -534,6 +630,40 @@ export default function AdminCMS() {
       console.error("Error fetching home data:", error);
     }
   };
+
+ const updatePrice = async () => {
+  if (!editingPriceForm.unit || !editingPriceForm.price) {
+    toast("Please fill all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await axios.put(
+      `${API}/pricelist/${editingPriceId}`,
+      {
+        unit: editingPriceForm.unit,
+        price: editingPriceForm.price,
+      }
+    );
+
+    // 🔥 Backend returns { message, data }
+    const updatedItem = res.data.data;
+
+    setPrices((prev) =>
+      prev.map((p) =>
+        p.id === editingPriceId ? updatedItem : p
+      )
+    );
+
+    setEditingPriceId(null);
+    setEditingPriceForm({ unit: "", price: "" });
+
+    toast("Price updated successfully");
+  } catch (err) {
+    console.error(err);
+    toast("Error updating price", "error");
+  }
+};
 
   /* TOAST NOTIFICATION */
   const toast = (msg, type = "success") =>
@@ -548,15 +678,118 @@ export default function AdminCMS() {
       color: 'white',
     });
 
-  /* SAVE HANDLERS */
   const saveOverview = async () => {
-    try {
-      await axios.put(`${API}/project-details/${projectId}`, overview);
-      toast("Overview saved successfully");
-    } catch (error) {
-      toast("Error saving overview", "error");
+  try {
+    if (!projectId) {
+      toast("Select a project first", "error");
+      return;
     }
-  };
+
+    const fd = new FormData();
+    fd.append("projectId", projectId);
+
+    // ✅ Append all text fields manually
+    fd.append("name", overview.name || "");
+    fd.append("category", overview.category || "");
+    fd.append("status", overview.status || "");
+    fd.append("type", overview.type || "");
+    fd.append("developmentSize", overview.developmentSize || "");
+    fd.append("numberOfUnits", overview.numberOfUnits || "");
+    fd.append("topTitle", overview.topTitle || "");
+    fd.append("topLocation", overview.topLocation || "");
+    fd.append("topDescription", overview.topDescription || "");
+    fd.append("sitePlanHeading", overview.sitePlanHeading || "");
+
+    // 🔥 Append hero images from correct state
+    if (heroDesktopFile) {
+      fd.append("heroImageDesktop", heroDesktopFile);
+    }
+
+    if (heroMobileFile) {
+      fd.append("heroImageMobile", heroMobileFile);
+    }
+
+    // 🔥 Append other image fields if they are Files
+    if (overview.sitePlanImage instanceof File) {
+      fd.append("sitePlanImage", overview.sitePlanImage);
+    }
+
+    if (overview.plotAreaStatementImage instanceof File) {
+      fd.append("plotAreaStatementImage", overview.plotAreaStatementImage);
+    }
+
+    await axios.post(`${API}/project-details`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    toast("Overview saved successfully");
+
+  } catch (error) {
+    console.error(error);
+    toast("Error saving overview", "error");
+  }
+};
+  const addProjectAmenity = async () => {
+  if (!projectAmenityForm.name) {
+    toast("Amenity name required", "error");
+    return;
+  }
+
+  try {
+    const res = await axios.post(`${API}/project-amenities`, {
+      projectId,
+      name: projectAmenityForm.name,
+      description: projectAmenityForm.description,
+    });
+
+    setProjectAmenities([...projectAmenities, res.data.amenity]);
+    setProjectAmenityForm({ name: "", description: "" });
+
+    toast("Amenity added");
+  } catch (err) {
+    toast("Error adding amenity", "error");
+  }
+};
+
+const updateProjectAmenity = async () => {
+  if (!editingAmenityForm.name) {
+    toast("Amenity name required", "error");
+    return;
+  }
+
+  try {
+    const res = await axios.put(
+      `${API}/project-amenities/${editingAmenityId}`,
+      {
+        name: editingAmenityForm.name,
+        description: editingAmenityForm.description,
+      }
+    );
+
+    setProjectAmenities(
+      projectAmenities.map((a) =>
+        a.id === editingAmenityId ? res.data.amenity : a
+      )
+    );
+
+    setEditingAmenityId(null);
+    setEditingAmenityForm({ name: "", description: "" });
+
+    toast("Amenity updated");
+  } catch (err) {
+    toast("Error updating amenity", "error");
+  }
+};
+
+const deleteProjectAmenity = async (id) => {
+  try {
+    await axios.delete(`${API}/project-amenities/${id}`);
+    setProjectAmenities(projectAmenities.filter(a => a.id !== id));
+    toast("Amenity deleted");
+  } catch (err) {
+    toast("Error deleting amenity", "error");
+  }
+};
 
   const saveWhy = async () => {
     try {
@@ -566,6 +799,8 @@ export default function AdminCMS() {
       toast("Error saving why section", "error");
     }
   };
+
+  
 
   const saveLocation = async () => {
     try {
@@ -658,38 +893,40 @@ export default function AdminCMS() {
     }
   };
 
-  const saveBrochure = async () => {
-    if (!projectId || !brochureFiles.brochure) {
-      toast("Brochure PDF is required", "error");
+const saveBrochure = async () => {
+  try {
+    if (!projectId) {
+      alert("Please select a project");
       return;
     }
 
-    try {
-      const fd = new FormData();
-      fd.append("projectId", projectId);
-      fd.append("title", brochure.title);
-      fd.append("brochure", brochureFiles.brochure);
+    const formData = new FormData();
+    formData.append("projectId", projectId);
+    formData.append("brochure", brochureFile);
+    formData.append("thumbnail", thumbnailFile);
+    // 🔥 Hero Images
+if (heroDesktopFile) {
+  formData.append("heroImageDesktop", heroDesktopFile);
+}
 
-      if (brochureFiles.thumbnail) {
-        fd.append("thumbnail", brochureFiles.thumbnail);
-      }
+if (heroMobileFile) {
+  formData.append("heroImageMobile", heroMobileFile);
+}
 
-      await axios.post(`${API}/brochure`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const res = await fetch(`${API_BASE}/brochure/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const res = await axios.get(`${API}/brochure/${projectId}`);
-      const b = res.data || {};
-      setBrochure({
-        ...b,
-        fileUrl: b.fileUrl ? getImageUrl(b.fileUrl) : "",
-        thumbnailUrl: b.thumbnailUrl ? getImageUrl(b.thumbnailUrl) : "",
-      });
-      toast("Brochure saved successfully");
-    } catch (error) {
-      toast("Error saving brochure", "error");
+    if (!res.ok) {
+      throw new Error("Upload failed");
     }
-  };
+
+    alert("Brochure uploaded successfully!");
+  } catch (err) {
+    console.error("Upload error:", err);
+  }
+};
 
   const saveAmenities = async () => {
     try {
@@ -702,25 +939,35 @@ export default function AdminCMS() {
     }
   };
 
-  const addPrice = async () => {
-    if (!priceForm.unit || !priceForm.price) {
-      toast("Please fill all fields", "error");
-      return;
-    }
+const addPrice = async () => {
+  if (!priceForm.unit || !priceForm.price) {
+    toast("Please fill all fields", "error");
+    return;
+  }
 
-    try {
-      await axios.post(`${API}/pricelist`, {
-        projectId,
-        items: [priceForm],
-      });
-      const res = await axios.get(`${API}/pricelist/${projectId}`);
-      setPrices(res.data.priceList || []);
-      setPriceForm({ unit: "", price: "" });
-      toast("Price added");
-    } catch (error) {
-      toast("Error adding price", "error");
-    }
-  };
+  try {
+    await axios.post(`${API}/pricelist`, {
+      projectId,
+      items: [priceForm],
+    });
+
+    // refetch clean
+    const res = await axios.get(`${API}/pricelist/${projectId}`);
+
+    setPrices(
+      Array.isArray(res.data?.priceList)
+        ? res.data.priceList
+        : []
+    );
+
+    setPriceForm({ unit: "", price: "" });
+
+    toast("Price added successfully");
+  } catch (error) {
+    console.error(error);
+    toast("Error adding price", "error");
+  }
+};
 
   const saveSmartInvestment = async () => {
     if (!projectId) return;
@@ -767,7 +1014,6 @@ export default function AdminCMS() {
     try {
       const fd = new FormData();
       fd.append("projectId", projectId);
-
       galleryFiles.forEach((file) => {
         fd.append("images", file);
       });
@@ -818,7 +1064,7 @@ export default function AdminCMS() {
 
   const deleteBanner = async (id) => {
     try {
-      await Swal.fire({
+      const result = await Swal.fire({
         title: 'Are you sure?',
         text: "This banner will be permanently deleted!",
         icon: 'warning',
@@ -826,13 +1072,12 @@ export default function AdminCMS() {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          await axios.delete(`${API}/banners/${id}`);
-          fetchHomeData();
-          toast("Banner deleted successfully");
-        }
       });
+      if (result.isConfirmed) {
+        await axios.delete(`${API}/banners/${id}`);
+        fetchHomeData();
+        toast("Banner deleted successfully");
+      }
     } catch (error) {
       toast("Error deleting banner", "error");
     }
@@ -854,10 +1099,7 @@ export default function AdminCMS() {
       });
 
       fetchHomeData();
-      setAmenityForm({
-        label: "",
-        icon: null,
-      });
+      setAmenityForm({ label: "", icon: null });
       toast("Amenity added successfully");
     } catch (error) {
       toast("Error adding amenity", "error");
@@ -866,7 +1108,7 @@ export default function AdminCMS() {
 
   const deleteAmenity = async (id) => {
     try {
-      await Swal.fire({
+      const result = await Swal.fire({
         title: 'Are you sure?',
         text: "This amenity will be permanently deleted!",
         icon: 'warning',
@@ -874,13 +1116,12 @@ export default function AdminCMS() {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          await axios.delete(`${API}/amenities/${id}`);
-          fetchHomeData();
-          toast("Amenity deleted successfully");
-        }
       });
+      if (result.isConfirmed) {
+        await axios.delete(`${API}/amenities/${id}`);
+        fetchHomeData();
+        toast("Amenity deleted successfully");
+      }
     } catch (error) {
       toast("Error deleting amenity", "error");
     }
@@ -888,90 +1129,15 @@ export default function AdminCMS() {
 
   /* SIDEBAR SECTIONS */
   const sidebarSections = [
-    {
-      id: "overview",
-      label: "Project Overview",
-      icon: Eye,
-      color: "blue"
-    },
-    {
-      id: "why",
-      label: "Why Choose Us",
-      icon: Star,
-      color: "yellow"
-    },
-    {
-      id: "location",
-      label: "Location & Connectivity",
-      icon: MapPin,
-      color: "green"
-    },
-    {
-      id: "floor",
-      label: "Floor Plans",
-      icon: Layers,
-      color: "purple"
-    },
-    {
-      id: "specs",
-      label: "Specifications",
-      icon: Wrench,
-      color: "indigo"
-    },
-    {
-      id: "construction",
-      label: "Construction Updates",
-      icon: Construction,
-      color: "orange"
-    },
-    {
-      id: "amenities",
-      label: "Project Amenities",
-      icon: CheckSquare,
-      color: "pink"
-    },
-    {
-      id: "price",
-      label: "Price List",
-      icon: DollarSign,
-      color: "emerald"
-    },
-    {
-      id: "smart-investment",
-      label: "Smart Investment",
-      icon: TrendingUp,
-      color: "teal"
-    },
-    {
-      id: "gallery",
-      label: "Project Gallery",
-      icon: Grid3X3,
-      color: "rose"
-    },
-    {
-      id: "stats",
-      label: "Project Statistics",
-      icon: BarChart3,
-      color: "cyan"
-    },
-    {
-      id: "brochure",
-      label: "Brochure",
-      icon: FilePieChart,
-      color: "violet"
-    },
-    {
-      id: "home-banner",
-      label: "Home Banners",
-      icon: Home,
-      color: "amber"
-    },
-    {
-      id: "manage-amenities",
-      label: "Manage Amenities",
-      icon: Settings,
-      color: "gray"
-    }
+    { id: "overview", label: "Project Overview", icon: Eye, color: "blue" },
+    { id: "why", label: "Why Choose Us", icon: Star, color: "yellow" },
+    { id: "location", label: "Location & Connectivity", icon: MapPin, color: "green" },
+    { id: "site-plan", label: "Site Plan & Plot Area", icon: Map, color: "indigo" },
+    { id: "amenities", label: "Project Amenities", icon: CheckSquare, color: "pink" },
+    { id: "price", label: "Price List", icon: DollarSign, color: "emerald" },
+    { id: "smart-investment", label: "Smart Investment", icon: TrendingUp, color: "teal" },
+    { id: "gallery", label: "Project Gallery", icon: Grid3X3, color: "rose" },
+    { id: "home-banner", label: "Home Banners", icon: Home, color: "amber" },
   ];
 
   /* FILTERED PROJECTS */
@@ -1045,7 +1211,7 @@ export default function AdminCMS() {
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  <div className={`w-2 h-2 rounded-full ${p.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                  <div className={`w-2 h-2 rounded-full ${p.status === 'ongoing' ? 'bg-green-500' : 'bg-gray-500'}`} />
                   <span className="text-sm truncate">{p.name}</span>
                 </div>
                 <ChevronRight className="w-4 h-4 opacity-50" />
@@ -1134,30 +1300,10 @@ export default function AdminCMS() {
           <div className="p-6">
             <Section title="Dashboard Overview" subtitle="Welcome back, Admin" icon={BarChart3}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard 
-                  title="Total Projects" 
-                  value={stats.totalProjects} 
-                  icon={FolderOpen}
-                  color="blue"
-                />
-                <StatCard 
-                  title="Active Projects" 
-                  value={stats.activeProjects} 
-                  icon={CheckSquare}
-                  color="green"
-                />
-                <StatCard 
-                  title="Total Images" 
-                  value={stats.totalImages} 
-                  icon={ImageIcon}
-                  color="purple"
-                />
-                <StatCard 
-                  title="Recent Updates" 
-                  value={stats.recentUpdates} 
-                  icon={Bell}
-                  color="orange"
-                />
+                <StatCard title="Total Projects" value={stats.totalProjects} icon={FolderOpen} color="blue" />
+                <StatCard title="Active Projects" value={stats.activeProjects} icon={CheckSquare} color="green" />
+                <StatCard title="Total Images" value={stats.totalImages} icon={ImageIcon} color="purple" />
+                <StatCard title="Recent Updates" value={stats.recentUpdates} icon={Bell} color="orange" />
               </div>
 
               <Card title="Quick Actions">
@@ -1207,7 +1353,7 @@ export default function AdminCMS() {
                             <td className="py-4 px-4 font-medium">{project.name}</td>
                             <td className="py-4 px-4">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                project.status === 'active' 
+                                project.status === 'ongoing' 
                                   ? 'bg-green-100 text-green-800' 
                                   : 'bg-gray-100 text-gray-800'
                               }`}>
@@ -1249,9 +1395,7 @@ export default function AdminCMS() {
                 </div>
                 <div className="flex items-center space-x-3 mt-4 md:mt-0">
                   <span className="bg-white/20 px-4 py-2 rounded-lg">{overview.status}</span>
-                  <Button variant="outline" className="border-white text-white hover:bg-white/10">
-                    Preview Project
-                  </Button>
+                  
                 </div>
               </div>
             </div>
@@ -1264,28 +1408,346 @@ export default function AdminCMS() {
             ) : (
               <>
                 {section === "overview" && (
-                  <Section title="Project Overview" icon={Eye}>
-                    <Card>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {Object.entries(overview).map(([key, value]) => (
-                          <Input
-                            key={key}
-                            label={key.replace(/([A-Z])/g, ' $1').toUpperCase()}
-                            value={value}
-                            onChange={(e) =>
-                              setOverview({ ...overview, [key]: e.target.value })
-                            }
-                          />
-                        ))}
-                      </div>
-                      <div className="flex justify-end mt-6 pt-6 border-t">
-                        <Button onClick={saveOverview} icon={Save} variant="primary">
-                          Save Overview
-                        </Button>
-                      </div>
-                    </Card>
-                  </Section>
-                )}
+  <Section title="Project Overview" icon={Eye}>
+    
+    {/* ================= BASIC DETAILS ================= */}
+    <Card title="Basic Project Information">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Input
+          label="Project Name"
+          value={overview.name}
+          onChange={(e) => setOverview({ ...overview, name: e.target.value })}
+        />
+        <Input
+          label="Category"
+          value={overview.category}
+          onChange={(e) => setOverview({ ...overview, category: e.target.value })}
+        />
+        <Input
+          label="Status"
+          value={overview.status}
+          onChange={(e) => setOverview({ ...overview, status: e.target.value })}
+        />
+        <Input
+          label="Type"
+          value={overview.type}
+          onChange={(e) => setOverview({ ...overview, type: e.target.value })}
+        />
+        <Input
+          label="Development Size"
+          value={overview.developmentSize}
+          onChange={(e) =>
+            setOverview({ ...overview, developmentSize: e.target.value })
+          }
+        />
+        <Input
+          label="Number of Units"
+          value={overview.numberOfUnits}
+          onChange={(e) =>
+            setOverview({ ...overview, numberOfUnits: e.target.value })
+          }
+        />
+        <Input
+          label="Top Title"
+          value={overview.topTitle}
+          onChange={(e) =>
+            setOverview({ ...overview, topTitle: e.target.value })
+          }
+        />
+        <Input
+          label="Top Location"
+          value={overview.topLocation}
+          onChange={(e) =>
+            setOverview({ ...overview, topLocation: e.target.value })
+          }
+        />
+        <Textarea
+          label="Top Description"
+          value={overview.topDescription}
+          onChange={(e) =>
+            setOverview({ ...overview, topDescription: e.target.value })
+          }
+          className="md:col-span-2"
+        />
+      </div>
+
+      <div className="mt-6">
+        <Button onClick={saveOverview} icon={Save} variant="primary">
+          Save Basic Details
+        </Button>
+      </div>
+
+      {/* HERO IMAGES SECTION */}
+<div className="mt-8 border-t pt-8">
+  <h3 className="text-lg font-semibold mb-6">Hero Section Images</h3>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    {/* Desktop Hero */}
+    <FileUpload
+      label="Hero Image (Desktop)"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        console.log("Desktop Hero Selected:", file);
+        setHeroDesktopFile(file);
+      }}
+    />
+
+    {/* Mobile Hero */}
+    <FileUpload
+      label="Hero Image (Mobile)"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        console.log("Mobile Hero Selected:", file);
+        setHeroMobileFile(file);
+      }}
+    />
+
+  </div>
+</div>
+    </Card>
+
+    {/* ================= CINEMATIC + ROUTE MAP ================= */}
+    {/* ================= PROJECT MEDIA (IMAGE + ROUTE MAP) ================= */}
+<Card title="Project Media & Route Map" className="mt-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    {/* Image Upload */}
+    <div>
+      <FileUpload
+        label="Upload Project Media Image"
+        accept="image/*"
+        icon={ImageIcon}
+        onChange={(e) =>
+          setMediaFiles({
+            ...mediaFiles,
+            cinematic360: e.target.files[0], // keep same key if backend same
+          })
+        }
+      />
+
+      {projectMedia.cinematic360 && (
+        <div className="mt-4">
+          <p className="text-sm text-gray-600 mb-2">
+            Current Uploaded Image:
+          </p>
+
+          <img
+            src={projectMedia.cinematic360}
+            alt="Project Media"
+            className="w-full h-64 object-cover rounded-lg shadow-md"
+            onError={(e) => {
+              e.target.src =
+                "https://placehold.co/600x400/3b82f6/ffffff?text=Project+Image";
+            }}
+          />
+        </div>
+      )}
+    </div>
+
+    {/* Route Map */}
+    <div>
+      <Textarea
+        label="Google Route Map Embed URL"
+        placeholder="Paste Google Maps embed link"
+        value={projectMedia.routeMap}
+        onChange={(e) =>
+          setProjectMedia({
+            ...projectMedia,
+            routeMap: e.target.value,
+          })
+        }
+      />
+
+      {projectMedia.routeMap && (
+        <div className="mt-4 rounded-lg overflow-hidden border shadow-sm">
+          <iframe
+            src={projectMedia.routeMap}
+            width="100%"
+            height="250"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+          />
+        </div>
+      )}
+    </div>
+  </div>
+
+  <div className="mt-6">
+    <Button onClick={saveProjectMedia} icon={Save} variant="primary">
+      Save Media
+    </Button>
+  </div>
+</Card>
+
+    {/* ================= BROCHURE ================= */}
+    <Card title="Project Brochure" className="mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <div>
+          <Input
+            label="Brochure Title"
+            value={brochure.title}
+            onChange={(e) =>
+              setBrochure({ ...brochure, title: e.target.value })
+            }
+          />
+
+          <div className="mt-4 space-y-4">
+           <FileUpload
+  label="Upload Brochure (PDF)"
+  accept=".pdf"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    console.log("Selected brochure:", file);
+    setBrochureFile(file);
+  }}
+/>
+
+<FileUpload
+  label="Upload Thumbnail Image"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    console.log("Selected thumbnail:", file);
+    setThumbnailFile(file);
+  }}
+/>
+          </div>
+        </div>
+
+        <div>
+          {brochure.fileUrl && (
+            <div className="border rounded-xl p-6 bg-blue-50 shadow-sm">
+              <div className="flex items-center space-x-4 mb-4">
+                <FileText className="w-10 h-10 text-blue-600" />
+                <div>
+                  <h4 className="font-semibold text-gray-900">
+                    Current Brochure
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {brochure.title}
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href={brochure.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-blue-600 hover:text-blue-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Brochure
+              </a>
+
+              {brochure.thumbnailUrl && (
+                <div className="mt-4">
+                  <img
+                    src={brochure.thumbnailUrl}
+                    alt="Brochure Thumbnail"
+                    className="w-32 h-32 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <Button onClick={saveBrochure} icon={Save} variant="primary">
+          Save Brochure
+        </Button>
+      </div>
+    </Card>
+
+  </Section>
+)}
+
+
+
+{section === "site-plan" && (
+  <Section title="Site Plan & Plot Area Statement" icon={Map}>
+    <Card title="Site Plan Section">
+
+      <Input
+        label="Site Plan Heading"
+        value={overview.sitePlanHeading || ""}
+        onChange={(e) =>
+          setOverview({ ...overview, sitePlanHeading: e.target.value })
+        }
+      />
+
+      <FileUpload
+        label="Upload Site Plan Image"
+        accept="image/*"
+        icon={ImageIcon}
+        onChange={(e) =>
+          setOverview({
+            ...overview,
+            sitePlanImage: e.target.files[0],
+          })
+        }
+      />
+
+      {overview.sitePlanImage && (
+        <div className="mt-4">
+          <img
+            src={
+              overview.sitePlanImage instanceof File
+                ? URL.createObjectURL(overview.sitePlanImage)
+                : getImageUrl(overview.sitePlanImage)
+            }
+            alt="Site Plan"
+            className="w-full h-80 object-cover rounded-lg shadow"
+          />
+        </div>
+      )}
+
+    </Card>
+
+    <Card title="Plot Area Statement" className="mt-8">
+
+      <FileUpload
+        label="Upload Plot Area Statement Image"
+        accept="image/*"
+        icon={ImageIcon}
+        onChange={(e) =>
+          setOverview({
+            ...overview,
+            plotAreaStatementImage: e.target.files[0],
+          })
+        }
+      />
+
+      {overview.plotAreaStatementImage && (
+        <div className="mt-4">
+          <img
+            src={
+              overview.plotAreaStatementImage instanceof File
+                ? URL.createObjectURL(overview.plotAreaStatementImage)
+                : getImageUrl(overview.plotAreaStatementImage)
+            }
+            alt="Plot Area Statement"
+            className="w-full h-80 object-cover rounded-lg shadow"
+          />
+        </div>
+      )}
+
+      <div className="mt-6">
+        <Button onClick={saveOverview} icon={Save} variant="primary">
+          Save Site Plan Data
+        </Button>
+      </div>
+
+    </Card>
+  </Section>
+)}
+                
 
                 {section === "why" && (
                   <Section title="Why Choose This Project" icon={Star}>
@@ -1313,6 +1775,26 @@ export default function AdminCMS() {
                                 }}
                               />
                             </div>
+                            <Input
+                              label="Icon Key"
+                              value={w.iconKey}
+                              onChange={(e) => {
+                                const copy = [...why];
+                                copy[i].iconKey = e.target.value;
+                                setWhy(copy);
+                              }}
+                              placeholder="e.g., MapPin, CheckCircle2"
+                            />
+                            <Input
+                              label="Sort Order"
+                              type="number"
+                              value={w.sortOrder}
+                              onChange={(e) => {
+                                const copy = [...why];
+                                copy[i].sortOrder = parseInt(e.target.value);
+                                setWhy(copy);
+                              }}
+                            />
                           </div>
                           <Button
                             variant="danger"
@@ -1325,7 +1807,7 @@ export default function AdminCMS() {
                       ))}
                       <div className="flex space-x-4">
                         <Button
-                          onClick={() => setWhy([...why, { title: "", description: "" }])}
+                          onClick={() => setWhy([...why, { title: "", description: "", iconKey: "MapPin", sortOrder: why.length + 1 }])}
                           icon={Plus}
                           variant="secondary"
                         >
@@ -1675,58 +2157,141 @@ export default function AdminCMS() {
                   </Section>
                 )}
 
-                {section === "amenities" && (
-                  <Section title="Project Amenities" icon={CheckSquare}>
-                    <Card>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        {amenities.map((amenity) => (
-                          <label
-                            key={amenity.id}
-                            className={`relative border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                              selectedAmenities.includes(amenity.id)
-                                ? 'border-blue-500 bg-blue-50 shadow-md'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              className="absolute top-3 right-3"
-                              checked={selectedAmenities.includes(amenity.id)}
-                              onChange={() => {
-                                setSelectedAmenities((prev) =>
-                                  prev.includes(amenity.id)
-                                    ? prev.filter((x) => x !== amenity.id)
-                                    : [...prev, amenity.id]
-                                );
-                              }}
-                            />
-                            <div className="flex flex-col items-center text-center">
-                              <img
-                                src={getImageUrl(amenity.icon)}
-                                alt={amenity.label}
-                                className="w-12 h-12 mb-3 object-contain"
-                                onError={(e) => {
-                                  e.target.src = `https://placehold.co/100x100/3b82f6/ffffff?text=${amenity.label.charAt(0)}`;
-                                }}
-                              />
-                              <span className="font-medium text-gray-900">{amenity.label}</span>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                      <div className="border-t pt-6">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-700">
-                            Selected: {selectedAmenities.length} amenities
-                          </span>
-                          <Button onClick={saveAmenities} icon={Save} variant="primary">
-                            Save Amenities
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  </Section>
-                )}
+             {section === "amenities" && (
+  <Section title="Project Amenities" icon={CheckSquare}>
+    <Card>
+
+      {/* Existing Amenities */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {projectAmenities.map((amenity) => (
+          <div
+            key={amenity.id}
+            className="border rounded-xl p-5 hover:shadow-md transition"
+          >
+            {editingAmenityId === amenity.id ? (
+              <>
+                <Input
+                  label="Amenity Name"
+                  value={editingAmenityForm.name}
+                  onChange={(e) =>
+                    setEditingAmenityForm({
+                      ...editingAmenityForm,
+                      name: e.target.value,
+                    })
+                  }
+                />
+
+                <Textarea
+                  label="Description"
+                  value={editingAmenityForm.description}
+                  onChange={(e) =>
+                    setEditingAmenityForm({
+                      ...editingAmenityForm,
+                      description: e.target.value,
+                    })
+                  }
+                />
+
+                <div className="flex space-x-3 mt-4">
+                  <Button
+                    icon={Save}
+                    variant="primary"
+                    onClick={updateProjectAmenity}
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => setEditingAmenityId(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="font-semibold text-gray-900">
+                    {amenity.name}
+                  </h4>
+                  {amenity.description && (
+                    <p className="text-gray-600 text-sm mt-2">
+                      {amenity.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button
+                    icon={Edit}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingAmenityId(amenity.id);
+                      setEditingAmenityForm({
+                        name: amenity.name,
+                        description: amenity.description || "",
+                      });
+                    }}
+                  />
+
+                  <Button
+                    icon={Trash2}
+                    size="sm"
+                    variant="danger"
+                    onClick={() => deleteProjectAmenity(amenity.id)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>  {/* ✅ THIS WAS MISSING */}
+
+      {/* Add New Amenity */}
+      <div className="border-t pt-6">
+        <h4 className="text-lg font-semibold mb-4">Add New Amenity</h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Amenity Name"
+            value={projectAmenityForm.name}
+            onChange={(e) =>
+              setProjectAmenityForm({
+                ...projectAmenityForm,
+                name: e.target.value,
+              })
+            }
+          />
+
+          <Textarea
+            label="Description (Optional)"
+            value={projectAmenityForm.description}
+            onChange={(e) =>
+              setProjectAmenityForm({
+                ...projectAmenityForm,
+                description: e.target.value,
+              })
+            }
+          />
+        </div>
+
+        <div className="mt-6">
+          <Button
+            icon={Plus}
+            variant="primary"
+            onClick={addProjectAmenity}
+          >
+            Add Amenity
+          </Button>
+        </div>
+      </div>
+
+    </Card>
+  </Section>
+)}
+                
 
                 {section === "price" && (
                   <Section title="Price List" icon={DollarSign}>
@@ -1740,28 +2305,84 @@ export default function AdminCMS() {
                               <th className="py-3 px-4 text-left font-semibold text-gray-700">Actions</th>
                             </tr>
                           </thead>
-                          <tbody>
-                            {prices.map((price) => (
-                              <tr key={price.id} className="border-b hover:bg-gray-50">
-                                <td className="py-4 px-4">{price.unit}</td>
-                                <td className="py-4 px-4 font-medium">
-                                  ₹{Number(price.price).toLocaleString('en-IN')}
-                                </td>
-                                <td className="py-4 px-4">
-                                  <Button
-                                    variant="danger"
-                                    icon={Trash2}
-                                    size="sm"
-                                    onClick={async () => {
-                                      await axios.delete(`${API}/pricelist/${price.id}`);
-                                      setPrices(prices.filter((x) => x.id !== price.id));
-                                      toast("Price deleted");
-                                    }}
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
+                         <tbody>
+  {prices.map((price) => (
+    <tr key={price.id} className="border-b hover:bg-gray-50">
+      {editingPriceId === price.id ? (
+        <>
+          <td className="py-4 px-4">
+            <input
+              className="border rounded px-2 py-1 w-full"
+              value={editingPriceForm.unit}
+              onChange={(e) =>
+                setEditingPriceForm({
+                  ...editingPriceForm,
+                  unit: e.target.value,
+                })
+              }
+            />
+          </td>
+          <td className="py-4 px-4">
+            <input
+              type="number"
+              className="border rounded px-2 py-1 w-full"
+              value={editingPriceForm.price}
+              onChange={(e) =>
+                setEditingPriceForm({
+                  ...editingPriceForm,
+                  price: e.target.value,
+                })
+              }
+            />
+          </td>
+          <td className="py-4 px-4 flex space-x-2">
+            <Button size="sm" icon={Save} onClick={updatePrice}>
+              Save
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setEditingPriceId(null)}
+            >
+              Cancel
+            </Button>
+          </td>
+        </>
+      ) : (
+        <>
+          <td className="py-4 px-4">{price.unit}</td>
+          <td className="py-4 px-4 font-medium">
+  {price.price}
+</td>
+          <td className="py-4 px-4 flex space-x-2">
+            <Button
+              variant="outline"
+              icon={Edit}
+              size="sm"
+              onClick={() => {
+                setEditingPriceId(price.id);
+                setEditingPriceForm({
+                  unit: price.unit,
+                  price: price.price,
+                });
+              }}
+            />
+            <Button
+              variant="danger"
+              icon={Trash2}
+              size="sm"
+              onClick={async () => {
+                await axios.delete(`${API}/pricelist/${price.id}`);
+                setPrices(prices.filter((x) => x.id !== price.id));
+                toast("Price deleted");
+              }}
+            />
+          </td>
+        </>
+      )}
+    </tr>
+  ))}
+</tbody>
                         </table>
                       </div>
 

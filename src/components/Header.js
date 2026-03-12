@@ -191,8 +191,10 @@ const completedVillas = completedProjects.filter((p) =>
                           className="absolute left-1/2 -translate-x-1/2 top-full pt-6 z-[999]"
                         >
                           <div className="bg-white/95 backdrop-blur-3xl shadow-2xl border border-gray-200/50 rounded-3xl overflow-hidden">
-                            <div className="bg-gradient-to-br from-[#67a139]/10 via-white to-[#8bc34a]/5 p-8 grid grid-cols-2 gap-10 w-[750px]">
-                              <ModernDropdownColumn
+<div className="bg-gradient-to-br from-[#67a139]/10 via-white to-[#8bc34a]/5 
+                p-8 grid grid-cols-2 gap-10 w-[750px]
+                max-h-[65vh] overflow-y-auto">                              
+                <ModernDropdownColumn
                                 title="PLOTS"
                                 subtitle="Premium Locations"
                                 items={plots}
@@ -244,8 +246,10 @@ onMouseEnter={() => {
                           className="absolute left-1/2 -translate-x-1/2 top-full pt-6 z-[999]"
                         >
                           <div className="bg-white/95 backdrop-blur-3xl shadow-2xl border border-gray-200/50 rounded-3xl overflow-hidden">
-                            <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50/30 p-8 grid grid-cols-2 gap-10 w-[750px]">
-                              <ModernDropdownColumn
+<div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50/30 
+                p-8 grid grid-cols-2 gap-10 w-[750px]
+                max-h-[65vh] overflow-y-auto">                              
+                <ModernDropdownColumn
                                 title="PLOTS"
                                 subtitle="Delivered Projects"
                                 items={completedPlots}

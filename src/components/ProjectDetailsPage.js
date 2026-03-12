@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Script from "next/script";
 import {
   ChevronLeft,
   ChevronRight,
@@ -83,6 +84,9 @@ export default function ProjectDetailsPage({ projectId }) {
   const [stats, setStats] = useState([]); // for card list rendering
   const [statsRaw, setStatsRaw] = useState(null);
   const [heroImage, setHeroImage] = useState("");
+  const [leadVerified, setLeadVerified] = useState(false);
+  
+  
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
 
@@ -105,6 +109,13 @@ export default function ProjectDetailsPage({ projectId }) {
 
   const [brochureUrl, setBrochureUrl] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [showLeadPopup, setShowLeadPopup] = useState(false);
+
+const [leadForm, setLeadForm] = useState({
+  name: "",
+  phone: "",
+  location: "",
+});
 
   // ------------------------
   // MEDIA STATE
@@ -155,9 +166,13 @@ export default function ProjectDetailsPage({ projectId }) {
     { id: "gallery", label: "GALLERY" },
   ];
 
-  // ------------------------
-  // HELPER FUNCTIONS
-  // ------------------------
+  // Project address (can be replaced with dynamic data from projectData)
+  const projectAddress = {
+    full: projectData?.address || "AIRA AVENUE\nV3RF+RJ7, Bharati Nagar,\nVandalur, Tamil Nadu 600048,\nIndia",
+    rating: projectData?.rating || "4.6 ★ (9)"
+  };
+
+  // ✅ FIX: Moved getFilteredTabs to the top (after constants) so it's defined before any useEffect
   const isPlotProject = Boolean(
     projectData?.type &&
     (projectData.type.toLowerCase().includes("plots") ||
@@ -165,7 +180,6 @@ export default function ProjectDetailsPage({ projectId }) {
       projectData.type.toLowerCase().includes("land"))
   );
 
-  // ✅ FIX: Wrapped in useCallback so it can be used as a stable dependency
   const getFilteredTabs = useCallback(() => {
     let tabs = [...allTabs];
 
@@ -187,31 +201,73 @@ export default function ProjectDetailsPage({ projectId }) {
     return tabs;
   }, [isPlotProject, projectStatus]);
 
-  // Get status badge styling
-  const getStatusBadge = () => {
-    if (!projectStatus) return null;
+  // ⭐ IMPROVED getDirectionUrl function – now accepts an address fallback
+  const getDirectionUrl = (embedUrl, addressFallback = null) => {
+    if (!embedUrl && !addressFallback) return null;
 
-    const statusConfig = {
-      ongoing: {
-        text: '🏗️ ONGOING',
-        bgColor: 'bg-green-500',
-        textColor: 'text-white'
-      },
-      completed: {
-        text: '✅ COMPLETED',
-        bgColor: 'bg-blue-500',
-        textColor: 'text-white'
+    try {
+      let urlString = embedUrl || '';
+
+      // If it's an iframe HTML, extract the src attribute
+      const srcMatch = embedUrl?.match(/src="([^"]+)"/);
+      if (srcMatch) {
+        urlString = srcMatch[1];
       }
-    };
 
-    const config = statusConfig[projectStatus];
-    if (!config) return null;
+      let lat, lng;
 
-    return (
-      <div className={`${config.bgColor} ${config.textColor} px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg`}>
-        {config.text}
-      </div>
-    );
+      // Pattern 1: !3d{lat}!2d{lng} (Google pb format)
+      const pbMatch = urlString.match(/!3d([-0-9.]+)!2d([-0-9.]+)/);
+      if (pbMatch) {
+        lat = pbMatch[1];
+        lng = pbMatch[2];
+      }
+
+      // Pattern 2: q={lat},{lng} or q={lat}%2C{lng}
+      if (!lat) {
+        const qMatch = urlString.match(/[?&]q=([-0-9.]+)%2C([-0-9.]+)/) ||
+                       urlString.match(/[?&]q=([-0-9.]+),([-0-9.]+)/);
+        if (qMatch) {
+          lat = qMatch[1];
+          lng = qMatch[2];
+        }
+      }
+
+      // Pattern 3: @{lat},{lng} (modern Google Maps URL)
+      if (!lat) {
+        const atMatch = urlString.match(/@([-0-9.]+),([-0-9.]+)/);
+        if (atMatch) {
+          lat = atMatch[1];
+          lng = atMatch[2];
+        }
+      }
+
+      if (lat && lng) {
+        // Return a proper Google Maps directions URL using coordinates
+        return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      }
+
+      // If no coordinates but we have an address fallback, use that
+      if (addressFallback) {
+        const encodedAddress = encodeURIComponent(addressFallback);
+        return `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+      }
+
+      // Last resort: if it's a Google Maps URL, open it directly
+      if (urlString.includes('google.com/maps')) {
+        return urlString;
+      }
+
+      return null;
+    } catch (err) {
+      console.error("Direction URL error:", err);
+      // Fallback to address if available
+      if (addressFallback) {
+        const encodedAddress = encodeURIComponent(addressFallback);
+        return `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+      }
+      return null;
+    }
   };
 
   const normalizeIframe = (html) => {
@@ -288,6 +344,14 @@ export default function ProjectDetailsPage({ projectId }) {
     return url;
   };
 
+  // ⭐⭐⭐ ADD THIS BELOW ⭐⭐⭐
+const extractMapSrc = (iframeHtml) => {
+  if (!iframeHtml) return null;
+
+  const match = iframeHtml.match(/src="([^"]+)"/);
+  return match ? match[1] : null;
+};
+
   // ------------------------
   // EFFECTS - DATA FETCHING
   // ------------------------
@@ -325,6 +389,14 @@ export default function ProjectDetailsPage({ projectId }) {
       [e.target.name]: e.target.value,
     }));
   };
+
+  useEffect(() => {
+  const lead = localStorage.getItem("lead_verified");
+
+  if (lead === "true") {
+    setLeadVerified(true);
+  }
+}, []);
 
   // Measure main site header (outside this component)
   useEffect(() => {
@@ -456,6 +528,30 @@ export default function ProjectDetailsPage({ projectId }) {
     fetchPriceList();
   }, [projectId]);
 
+
+  const fixGoogleMapUrl = (url) => {
+  if (!url) return null;
+
+  try {
+    // If already correct simple embed → return
+    if (url.includes("output=embed")) return url;
+
+    // If pb embed → extract lat lng from URL
+    const latLngMatch = url.match(/!3d([0-9.]+)!2d([0-9.]+)/);
+
+    if (latLngMatch) {
+      const lat = latLngMatch[1];
+      const lng = latLngMatch[2];
+
+      return `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+    }
+
+    return url;
+  } catch (e) {
+    return url;
+  }
+};
+
   // Media fetch
   useEffect(() => {
     if (!projectId) return;
@@ -468,11 +564,16 @@ export default function ProjectDetailsPage({ projectId }) {
 
         console.log("MEDIA FROM BACKEND:", res.data);
 
-        if (res.data?.data) {
-          setMedia({
-            cinematic360: res.data.data.cinematic360,
-            routeMap: sanitizeRouteMap(res.data.data.routeMap),
-          });
+       if (res.data?.data) {
+
+  const fixedMap = fixGoogleMapUrl(res.data.data.routeMap);
+
+  setMedia({
+    cinematic360: res.data.data.cinematic360,
+    routeMap: fixedMap,
+  });
+
+
         }
       } catch (error) {
         console.error("Error loading project media:", error);
@@ -797,27 +898,28 @@ export default function ProjectDetailsPage({ projectId }) {
     renderer.setPixelRatio(window.devicePixelRatio);
     rendererRef.current = renderer;
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
-    geometry.scale(-1, 1, 1);
+const geometry = new THREE.SphereGeometry(500, 60, 40);
+const textureLoader = new THREE.TextureLoader();
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.setCrossOrigin('anonymous');
-    const texture = textureLoader.load(
-      current360Image,
-      () => console.log("Texture loaded successfully"),
-      undefined,
-      (err) => console.error("Texture load error:", err)
-    );
-    texture.minFilter = THREE.LinearFilter;
+const texture = textureLoader.load(
+  current360Image,
+  () => console.log("Texture loaded"),
+  undefined,
+  (err) => console.error("Texture error:", err)
+);
 
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
+// ✅ Flip texture horizontally ONLY
+texture.wrapS = THREE.RepeatWrapping;
+texture.repeat.x = -1;
 
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-    sphereRef.current = sphere;
+const material = new THREE.MeshBasicMaterial({
+  map: texture,
+  side: THREE.BackSide, // ← REQUIRED when not scaling geometry
+});
+
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+sphereRef.current = sphere;
 
     let isUserInteracting = false;
     let onPointerDownMouseX = 0;
@@ -1023,15 +1125,23 @@ export default function ProjectDetailsPage({ projectId }) {
   };
 
   const openCinematic360 = () => {
-    if (!media.cinematic360) {
-      alert("Cinematic 360° not available");
-      return;
-    }
-    const fixedUrl = fixImageUrl(media.cinematic360);
-    console.log("Opening 360 with fixed URL:", fixedUrl);
-    setCurrent360Image(fixedUrl);
-    setShowCinematic360(true);
-  };
+  if (!media.cinematic360) {
+    alert("Cinematic 360° not available");
+    return;
+  }
+
+  let finalUrl = media.cinematic360;
+
+  // If backend sends only path like /uploads/xxx.jpg
+  if (!finalUrl.startsWith("http")) {
+    finalUrl = `${Imagebase}${finalUrl}`;
+  }
+
+  console.log("360 FINAL URL:", finalUrl);
+
+  setCurrent360Image(finalUrl);
+  setShowCinematic360(true);
+};
 
   const closeCinematic360 = () => {
     setShowCinematic360(false);
@@ -1105,6 +1215,75 @@ export default function ProjectDetailsPage({ projectId }) {
       });
     }
   };
+
+const openOtpWidget = () => {
+  const rawPhone = leadForm.phone.replace(/\D/g, ''); // Remove all non-digits
+  if (!rawPhone || rawPhone.length !== 10) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Enter a valid 10-digit mobile number',
+    });
+    return;
+  }
+
+  // Format with India country code
+  const formattedPhone = `+91${rawPhone}`;
+  const nameValue = leadForm.name.trim() || 'Brochure User';
+  const locationValue = leadForm.location || window.location.pathname;
+
+  const configuration = {
+    widgetId: '36636b6a5932383031343935',
+    tokenAuth: '499574TSbqywhw69b149f1P1',
+    identifier: formattedPhone,   // ✅ Now sends +91XXXXXXXXXX
+    success: async (data) => {
+      console.log('OTP VERIFIED:', data);
+
+      try {
+        const res = await axios.post(`${API_BASE}/contact/widget-lead`, {
+          name: nameValue,
+          email: 'otp@lead.com',
+          phone: formattedPhone,   // Save formatted phone
+          location: locationValue,
+        });
+
+        console.log('LEAD SAVED:', res.data);
+
+        localStorage.setItem('lead_verified', 'true');
+        setLeadVerified(true);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Brochure Downloading...',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setShowLeadPopup(false);
+
+        if (brochureUrl) {
+          window.open(brochureUrl, '_blank');
+        }
+
+        setLeadForm({ name: '', phone: '', location: '' });
+      } catch (err) {
+        console.log('SAVE ERROR:', err?.response?.data);
+        Swal.fire({
+          icon: 'error',
+          title: err?.response?.data?.message || 'Lead Save Failed',
+        });
+      }
+    },
+    failure: (error) => {
+      console.log('OTP FAILED:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'OTP Verification Failed',
+      });
+    },
+  };
+
+  window.initSendOTP(configuration);
+};
 
   const handleEnquirySubmit = async (e) => {
     e.preventDefault();
@@ -1440,18 +1619,22 @@ export default function ProjectDetailsPage({ projectId }) {
 
                     {/* Download Brochure */}
                     <button
-                      onClick={() => {
-                        if (!brochureUrl) {
-                          Swal.fire({
-                            icon: "info",
-                            title: "Brochure not available",
-                          });
-                          return;
-                        }
+onClick={() => {
+  if (!brochureUrl) {
+    Swal.fire({
+      icon: "info",
+      title: "Brochure not available",
+    });
+    return;
+  }
 
-                        setDownloadAfterEnquiry(true);
-                        setShowEnquiry(true);
-                      }}
+  if (leadVerified) {
+    window.open(brochureUrl, "_blank");
+    return;
+  }
+
+  setShowLeadPopup(true);
+}}
                       className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold bg-yellow-500 text-black shadow-lg hover:bg-yellow-600 hover:scale-105 transition-all"
                     >
                       <Download className="w-4 sm:w-5 h-4 sm:h-5" />
@@ -1585,7 +1768,7 @@ export default function ProjectDetailsPage({ projectId }) {
                   transition={{ duration: 0.8 }}
                   className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-green-100 relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+                  <div className="absolute inset-0 opacity-5"></div>
                   <div className="flex items-center gap-3 md:gap-4 mb-6">
                     <Globe2 className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
                     <h3 className="text-xl md:text-2xl font-bold text-gray-900">
@@ -1860,7 +2043,106 @@ export default function ProjectDetailsPage({ projectId }) {
               </div>
             </section>
           )}
+{/* Modern Sleek Lead Popup */}
+{showLeadPopup && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    {/* Backdrop with blur */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 bg-black/40 backdrop-blur-md"
+      onClick={() => setShowLeadPopup(false)}
+    />
 
+    {/* Modal Card */}
+    <motion.div
+      initial={{ scale: 0.9, y: 20, opacity: 0 }}
+      animate={{ scale: 1, y: 0, opacity: 1 }}
+      exit={{ scale: 0.9, y: 20, opacity: 0 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+      className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
+    >
+      {/* Decorative top accent */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#67a139] via-yellow-400 to-[#67a139]" />
+
+      <div className="p-8">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h3 className="text-3xl font-bold text-gray-900 mb-2">
+            Get Brochure
+          </h3>
+          <p className="text-gray-500 text-sm">
+            Enter your details to instantly download the brochure
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="space-y-5">
+          {/* Name Input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <User className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={leadForm.name}
+              onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50"
+            />
+          </div>
+
+          {/* Phone Input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Phone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+  type="tel"
+  placeholder="10-digit mobile number"
+  value={leadForm.phone}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setLeadForm({ ...leadForm, phone: value });
+  }}
+  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#67a139] focus:border-transparent outline-none transition bg-white/50"
+/>
+          </div>
+
+          {/* Hidden location field (optional) */}
+          <input
+            type="hidden"
+            value={leadForm.location || window.location.pathname}
+          />
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setShowLeadPopup(false)}
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={openOtpWidget}
+              disabled={!leadForm.phone || leadForm.phone.length < 10}
+              className="flex-1 bg-gradient-to-r from-[#67a139] to-[#4a8f2f] text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Verify & Download
+            </button>
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <p className="text-xs text-gray-400 text-center mt-6">
+          We'll send the brochure link via SMS after verification.
+        </p>
+      </div>
+    </motion.div>
+  </div>
+)}
           {/* AMENITIES SECTION */}
         <section
   id="section-amenities"
@@ -2376,36 +2658,70 @@ export default function ProjectDetailsPage({ projectId }) {
       )}
 
       {/* Route Map Modal */}
-      {showRouteMap && media.routeMap && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden">
-            <div className="flex justify-between items-center px-5 py-3 border-b">
-              <h3 className="text-lg font-semibold">Location Map</h3>
-              <button
-                onClick={() => setShowRouteMap(false)}
-                className="text-gray-500 hover:text-gray-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+{showRouteMap && media.routeMap && (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl overflow-hidden">
 
-            <div className="p-4 bg-gray-50">
-              <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[65vh] rounded-xl overflow-hidden">
-                <iframe
-                  src={media.routeMap}
-                  className="w-full h-full"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                ></iframe>
-              </div>
-            </div>
-          </div>
+      {/* Header with address, rating and close button */}
+      <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-[#67a139]" />
+            Project Location
+          </h3>
+          <p className="text-sm text-gray-600 whitespace-pre-line mt-1">
+            {projectAddress.full}
+          </p>
         </div>
-      )}
+        <div className="flex items-center gap-4">
+          {/* Rating badge */}
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
+            <span className="text-yellow-500 font-bold">{projectAddress.rating.split(' ')[0]}</span>
+            <span className="text-gray-500 text-sm">{projectAddress.rating.split(' ')[1]}</span>
+          </div>
+          {/* Close button */}
+          <button
+            onClick={() => setShowRouteMap(false)}
+            className="text-gray-500 hover:text-black transition-colors"
+            aria-label="Close map"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Map */}
+      <div className="relative w-full h-[55vh]">
+        <iframe
+          src={media.routeMap}
+          className="w-full h-full"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+        />
+      </div>
+
+      {/* Footer with directions button */}
+      <div className="p-5 bg-gray-50 flex justify-center">
+        <button
+          onClick={() => {
+            const dirUrl = getDirectionUrl(media.routeMap, projectAddress.full);
+            window.open(dirUrl || media.routeMap, "_blank");
+          }}
+          className="flex items-center gap-2 bg-[#67a139] text-white px-7 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition"
+        >
+          <Navigation className="w-5 h-5" />
+          Get Directions
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
       {/* Cinematic 360 Modal */}
       {showCinematic360 && (
+        
         <div className="fixed inset-0 bg-black z-50 overflow-hidden">
           <div className="relative w-full h-full min-h-screen">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -2798,6 +3114,10 @@ export default function ProjectDetailsPage({ projectId }) {
           </div>
         </div>
       )}
+      <Script
+  src="https://verify.msg91.com/otp-provider.js"
+  strategy="afterInteractive"
+/>
     </div>
   );
 }

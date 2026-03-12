@@ -198,11 +198,15 @@ function calculateEMI(P, R, Y) {
 
 function BankTable() {
   const banks = [
-    { name: "HDFC Bank", rate: 8.2 },
-    { name: "ICICI Bank", rate: 8.4 },
-    { name: "SBI Home Loan", rate: 8.1 },
-    { name: "Axis Bank", rate: 8.3 },
+    { name: "HDFC Bank", rate: 8 },
+    { name: "ICICI Bank", rate: 7.4 },
+    { name: "SBI Home Loan", rate: 7.55 },
+    { name: "Axis Bank", rate: 7.55 },
     { name: "Kotak Bank", rate: 8.25 },
+        { name: "Tata", rate: 7.5 },
+                { name: "PNB", rate: 7.35 },
+
+
   ];
 
   return (

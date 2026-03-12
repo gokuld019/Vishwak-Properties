@@ -12,9 +12,7 @@ const API_BASE = `${process.env.NEXT_PUBLIC_API_LIVE_URL}`;
 /* ✅ UPDATED URL ONLY */
 const ongoingProjects = [
   ["Aira Avenue", `/project-details/1`],
-  ["ALA Garden – Vandalur", `/project-details/12`],
-  ["SS Astron – OMR", `/project-details/5`],
-  ["VK Aurora – Kelambakkam", `/project-details/10`],
+  
 ];
 
 const socialLinks = [
@@ -72,16 +70,17 @@ export default function Footer() {
                 Get In Touch
               </p>
 
-              <p
-                className="text-[#1a2e1a] font-bold leading-none mb-2"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                +91 74011 31313
-              </p>
+<a href="tel:917401131313">
+  <p className="text-[#1a2e1a] font-bold leading-none mb-2">
+    +91 74011 31313
+  </p>
+</a>
+
+<a href="tel:919361815551">
+  <p className="text-[#1a2e1a] font-bold leading-none">
+    +91 93618 15551
+  </p>
+</a>
 
               <a
                 href="mailto:info@vishwakproperties.in"

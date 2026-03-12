@@ -68,7 +68,7 @@ export default function HeroSection() {
   const [projectOptions, setProjectOptions] = useState([]);
   const [commercialBuy, setCommercialBuy] = useState(null);
   const [commercialLease, setCommercialLease] = useState(null);
-
+const [expandedId, setExpandedId] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const sectionRef = useRef(null);
@@ -934,104 +934,140 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Testimonials Section - Mobile Responsive */}
-      <div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-5">
-            <p className="text-xs sm:text-sm font-semibold text-[#67a139] uppercase tracking-wider mb-3 sm:mb-4">
-              TESTIMONIALS
-            </p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-              Stories That <br />
-              Inspire <span className="text-[#67a139]">Confidence</span> !!
-            </h2>
-          </div>
-          <div className="relative h-[250px] sm:h-[300px] md:h-[360px] lg:h-[420px] xl:h-[460px] mb-8 sm:mb-10 md:mb-12 max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto">
-            <div className="relative w-full h-full flex items-center justify-center">
-              {testimonials.map((testimonial, index) => {
-                const position = getCardPosition(index);
-                const distance = isMobile
-                  ? 100
-                  : window.innerWidth <= 1024
-                    ? 180
-                    : 260;
-                if (position === "hidden") return null;
-                return (
-                  <div
-                    key={testimonial.id || index}
-                    className={`absolute transition-all duration-500 ease-in-out ${
-                      position === "center"
-                        ? "z-30 opacity-100 scale-100"
-                        : "z-10 opacity-40 blur-[1px] sm:blur-[2px] scale-90"
-                    }`}
-                    style={{
-                      top: "50%",
-                      left: "50%",
-                      transform:
-                        position === "center"
-                          ? "translate(-50%, -50%)"
-                          : position === "left"
-                            ? `translate(calc(-50% - ${distance}px), -50%)`
-                            : `translate(calc(-50% + ${distance}px), -50%)`,
-                    }}
-                  >
-                    <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-lg sm:shadow-xl lg:shadow-2xl p-4 sm:p-5 md:p-6 lg:p-8 lg:p-10 w-[250px] sm:w-[300px] md:w-[350px] lg:w-[400px] xl:w-[460px] min-h-[180px] sm:min-h-[200px] md:min-h-[240px] lg:min-h-[280px] xl:min-h-[300px] flex flex-col justify-between">
-                      <div className="flex justify-center gap-1 mb-3 sm:mb-4 md:mb-6">
-                        {[...Array(5)].map((_, i) => (
-                          <svg
-                            key={i}
-                            className={`w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 ${
-                              i < (testimonial.rating || 0)
-                                ? "fill-yellow-400"
-                                : "fill-gray-300"
-                            }`}
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <p className="text-gray-700 text-center text-xs sm:text-sm md:text-base lg:text-lg mb-3 sm:mb-4 md:mb-6 leading-relaxed flex-grow flex items-center justify-center px-2 sm:px-4">
-                        {testimonial.text}
-                      </p>
-                      <p className="text-gray-900 font-bold text-center text-sm sm:text-base md:text-lg">
-                        {testimonial.author}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-              {testimonials.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  No testimonials yet.
+     {/* Testimonials Section */}
+<div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    {/* Heading */}
+    <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-5">
+      <p className="text-xs sm:text-sm font-semibold text-[#67a139] uppercase tracking-wider mb-3 sm:mb-4">
+        TESTIMONIALS
+      </p>
+
+      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
+        Stories That <br />
+        Inspire <span className="text-[#67a139]">Confidence</span> !!
+      </h2>
+    </div>
+
+    {/* Carousel */}
+    <div className="relative h-[260px] sm:h-[320px] md:h-[380px] lg:h-[440px] xl:h-[480px] mb-10 max-w-4xl mx-auto">
+      <div className="relative w-full h-full flex items-center justify-center">
+
+        {testimonials.map((testimonial, index) => {
+          const position = getCardPosition(index);
+
+          const distance =
+            isMobile ? 100 : window.innerWidth <= 1024 ? 180 : 260;
+
+          if (position === "hidden") return null;
+
+          const id = testimonial.id || index;
+
+          return (
+            <div
+              key={id}
+              className={`absolute transition-all duration-500 ease-in-out ${
+                position === "center"
+                  ? "z-30 opacity-100 scale-100"
+                  : "z-10 opacity-40 blur-[2px] scale-90"
+              }`}
+              style={{
+                top: "50%",
+                left: "50%",
+                transform:
+                  position === "center"
+                    ? "translate(-50%, -50%)"
+                    : position === "left"
+                    ? `translate(calc(-50% - ${distance}px), -50%)`
+                    : `translate(calc(-50% + ${distance}px), -50%)`,
+              }}
+            >
+              {/* CARD */}
+              <div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[420px] xl:w-[480px] min-h-[240px] flex flex-col justify-between">
+
+                {/* Rating */}
+                <div className="flex justify-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < (testimonial.rating || 0)
+                          ? "fill-yellow-400"
+                          : "fill-gray-300"
+                      }`}
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
                 </div>
-              )}
+
+                {/* Text with Fade + Clamp */}
+                <div className="relative text-center px-2">
+                  <p
+                    className={`text-gray-700 text-sm md:text-base leading-relaxed transition-all duration-300 ${
+                      expandedId === id ? "" : "line-clamp-8"
+                    }`}
+                  >
+                    {testimonial.text}
+                  </p>
+
+                  {/* Gradient Fade */}
+                  {expandedId !== id && (
+                    <div className="absolute bottom-0 left-0 w-full h-10 bg-gradient-to-t from-white to-transparent"></div>
+                  )}
+                </div>
+
+                {/* Read More */}
+                {testimonial.text?.length > 120 && (
+                  <button
+                    onClick={() =>
+                      setExpandedId(expandedId === id ? null : id)
+                    }
+                    className="text-[#67a139] text-xs font-semibold mt-2 hover:underline"
+                  >
+                    {expandedId === id ? "Read Less" : "Read More"}
+                  </button>
+                )}
+
+                {/* Author */}
+                <p className="text-gray-900 font-bold text-center mt-3 text-base">
+                  {testimonial.author}
+                </p>
+
+              </div>
             </div>
+          );
+        })}
+
+        {testimonials.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+            No testimonials yet.
           </div>
-          <div className="flex justify-center gap-3 sm:gap-4">
-            <button
-              onClick={handlePrev}
-              disabled={testimonials.length <= 1}
-              className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-white border border-gray-300 hover:border-gray-400 flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md disabled:opacity-40 disabled:hover:scale-100"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700" />
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={testimonials.length <= 1}
-              className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-white border border-gray-300 hover:border-gray-400 flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md disabled:opacity-40 disabled:hover:scale-100"
-            >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-700" />
-            </button>
-          </div>
-          <div className="absolute top-16 sm:top-20 left-4 sm:left-6 text-5xl sm:text-6xl md:text-7xl lg:text-9xl text-blue-100 font-serif opacity-50 pointer-events-none hidden sm:block">
-            "
-          </div>
-          <div className="absolute bottom-16 sm:bottom-20 right-4 sm:right-6 text-5xl sm:text-6xl md:text-7xl lg:text-9xl text-blue-100 font-serif opacity-50 pointer-events-none hidden sm:block">
-            "
-          </div>
-        </div>
+        )}
       </div>
+    </div>
+
+    {/* Arrows */}
+    <div className="flex justify-center gap-4">
+      <button
+        onClick={handlePrev}
+        className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
+      >
+        <ChevronLeft className="mx-auto" />
+      </button>
+
+      <button
+        onClick={handleNext}
+        className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
+      >
+        <ChevronRight className="mx-auto" />
+      </button>
+    </div>
+
+  </div>
+</div>
 
       {/* DOUBLE LINE OUTLINED MARQUEE - Mobile Responsive */}
       <div className="relative w-full overflow-hidden bg-white py-4 sm:py-6 md:py-8 lg:py-10">
