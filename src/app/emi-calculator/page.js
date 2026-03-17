@@ -203,8 +203,8 @@ function BankTable() {
     { name: "SBI Home Loan", rate: 7.55 },
     { name: "Axis Bank", rate: 7.55 },
     { name: "Kotak Bank", rate: 8.25 },
-        { name: "Tata", rate: 7.5 },
-                { name: "PNB", rate: 7.35 },
+    { name: "Tata Capital", rate: 7.5 },
+    { name: "PNB", rate: 7.35 },
 
 
   ];

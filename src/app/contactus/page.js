@@ -123,10 +123,13 @@ export default function ContactPage() {
                                 rounded-2xl flex items-center justify-center shadow-lg">
                   <Phone className="text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+91 74011 31313</p>
-                </div>
+               <div>
+  <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
+  <div className="space-y-1 text-gray-600">
+    <p>+91 74011 31313</p>
+    <p>+91 93618 15551</p>
+  </div>
+</div>
               </div>
 
               <div className="flex items-start gap-4">

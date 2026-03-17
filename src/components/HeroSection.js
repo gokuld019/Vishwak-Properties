@@ -291,49 +291,65 @@ const [expandedId, setExpandedId] = useState(null);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_BASE}/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops!",
-          text: data.message || "Failed to submit enquiry",
-          confirmButtonColor: "#67a139",
-        });
-        return;
-      }
-      Swal.fire({
-        icon: "success",
-        title: "Message Sent!",
-        text: "Our team will get back to you shortly.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      setIsModalOpen(false);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        inquiry: "",
-        message: "",
-      });
-    } catch (error) {
-      console.error("Error submitting contact:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Server Error",
-        text: "Please try again later.",
-        confirmButtonColor: "#67a139",
-      });
-    }
-  };
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  const { name, email, phone, inquiry, projectId, message } = formData;
+
+  if (!name || !phone || !inquiry) {
+    Swal.fire({
+      icon: "warning",
+      title: "Missing Details",
+      text: "Please fill required fields",
+      confirmButtonColor: "#67a139",
+    });
+    return;
+  }
+
+  const selectedProject = projectOptions.find(
+    (p) => String(p.projectId) === String(projectId)
+  );
+
+  const projectName = selectedProject ? selectedProject.name : "Not Selected";
+
+  const text = `New Website Enquiry
+
+Name: ${name}
+Phone: ${phone}
+Email: ${email || "-"}
+Inquiry: ${inquiry}
+Project: ${projectName}
+Message: ${message || "-"}`;
+
+  const encodedText = encodeURIComponent(text);
+
+  const whatsappNumber = "918667642578"; // 👉 ADMIN NUMBER
+
+  const url = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
+
+  Swal.fire({
+    icon: "success",
+    title: "Opening WhatsApp...",
+    text: "Please click Send in WhatsApp",
+    showConfirmButton: false,
+    timer: 1500,
+  });
+
+  setTimeout(() => {
+    window.open(url, "_blank");
+  }, 1500);
+
+  setIsModalOpen(false);
+
+  setFormData({
+    name: "",
+    email: "",
+    phone: "",
+    inquiry: "",
+    projectId: "",
+    message: "",
+  });
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;

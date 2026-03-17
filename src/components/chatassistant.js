@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-
+import { usePathname } from 'next/navigation';   // ⭐ ADD THIS
 const ChatAssistant = () => {
   const [isOpen, setIsOpen]           = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
@@ -14,6 +14,8 @@ const ChatAssistant = () => {
   const inputRef       = useRef(null);
   const API_URL  = process.env.NEXT_PUBLIC_API_URL;
   const LOGO_URL = '/vlogo.webp';
+  const pathname = usePathname();   // ⭐ ADD THIS
+
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -118,6 +120,28 @@ const ChatAssistant = () => {
           </div>
         </div>
       )}
+
+
+{/* ── WhatsApp FAB ── */}
+{/* ── WhatsApp FAB ── */}
+{!pathname.startsWith('/contactus') && (
+  <a
+    href="https://wa.me/919361815551"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="vp-wa-fab"
+    aria-label="Chat on WhatsApp"
+  >
+    <span className="vp-wa-ring"></span>
+
+    <div className="vp-wa-inner">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="white">
+        <path d="M20.52 3.48A11.82 11.82 0 0012.06 0C5.4 0 .02 5.38.02 12.04c0 2.12.55 4.18 1.6 6L0 24l6.1-1.6a11.98 11.98 0 005.96 1.52h.01c6.66 0 12.04-5.38 12.04-12.04 0-3.21-1.25-6.23-3.59-8.4zM12.07 21.8c-1.8 0-3.57-.48-5.12-1.39l-.37-.22-3.62.95.97-3.53-.24-.36a9.8 9.8 0 01-1.5-5.22c0-5.46 4.44-9.9 9.9-9.9 2.64 0 5.12 1.03 6.98 2.9a9.8 9.8 0 012.9 6.99c0 5.46-4.44 9.9-9.9 9.9zm5.43-7.38c-.3-.15-1.77-.87-2.05-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.74-1.66-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.11 3.22 5.12 4.51.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.41.25-.7.25-1.3.17-1.41-.07-.11-.27-.18-.57-.33z"/>
+      </svg>
+    </div>
+  </a>
+)}
+
 
       {/* ── FAB ── */}
       <button className="vp-fab" onClick={toggleChat} aria-label="Toggle chat">
@@ -303,6 +327,8 @@ const ChatAssistant = () => {
           </div>
 
         </div>
+
+        
       )}
 
       {/* ══════════════ STYLES ══════════════ */}
@@ -535,6 +561,46 @@ const ChatAssistant = () => {
           .vp-bubble--bot table th,
           .vp-bubble--bot table td { padding:6px 6px; }
         }
+          /* ── WhatsApp FAB ── */
+.vp-wa-fab {
+  position: fixed;
+  bottom: 168px;   
+  right: 28px;
+  z-index: 9999;
+  text-decoration: none;
+}
+
+.vp-wa-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(37,211,102,.35);
+  animation: waPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes waPulse {
+  0%,100% { transform: scale(1); opacity: .7 }
+  50% { transform: scale(1.15); opacity: 0 }
+}
+
+.vp-wa-inner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #67a139;
+  display: grid;           /* ⭐ BEST CENTERING */
+  place-items: center;     /* ⭐ Perfect center */
+  box-shadow: 0 8px 24px rgba(37,211,102,.5),0 2px 8px rgba(0,0,0,.2);
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+}
+  .vp-wa-inner svg {
+  transform: translateY(-1px);
+}
+
+.vp-wa-inner:hover {
+  transform: scale(1.08) rotate(-8deg);
+  box-shadow: 0 14px 36px rgba(37,211,102,.65),0 4px 12px rgba(0,0,0,.25);
+}z
       `}</style>
     </>
   );
