@@ -51,7 +51,8 @@ export default function HeroSection() {
   const [isClient, setIsClient] = useState(false);
 
   const [recentProjects, setRecentProjects] = useState([]);
-
+const [phoneError, setPhoneError] = useState("");
+const [loading, setLoading] = useState(false);
   // ====== BANNERS (Web & Mobile) ======
   const [webBanners, setWebBanners] = useState([]);
   const [mobileBanners, setMobileBanners] = useState([]);
@@ -291,8 +292,10 @@ const [expandedId, setExpandedId] = useState(null);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
- const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
+
+  if (loading) return; // ⭐ prevent double click
 
   const { name, email, phone, inquiry, projectId, message } = formData;
 
@@ -306,60 +309,98 @@ const [expandedId, setExpandedId] = useState(null);
     return;
   }
 
-  const selectedProject = projectOptions.find(
-    (p) => String(p.projectId) === String(projectId)
-  );
+  const phoneRegex = /^[6-9]\d{9}$/;
 
-  const projectName = selectedProject ? selectedProject.name : "Not Selected";
+  if (!phoneRegex.test(phone)) {
+    Swal.fire({
+      icon: "error",
+      title: "Invalid Phone",
+      text: "Enter valid 10 digit mobile number",
+      confirmButtonColor: "#67a139",
+    });
+    return;
+  }
 
-  const text = `New Website Enquiry
+  try {
+    setLoading(true); // ⭐ disable button
 
-Name: ${name}
-Phone: ${phone}
-Email: ${email || "-"}
-Inquiry: ${inquiry}
-Project: ${projectName}
-Message: ${message || "-"}`;
+    const res = await fetch(`${API_BASE}/contacts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        inquiry,
+        projectId,
+        message,
+      }),
+    });
 
-  const encodedText = encodeURIComponent(text);
+    const data = await res.json();
 
-  const whatsappNumber = "918667642578"; // 👉 ADMIN NUMBER
+    if (data.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Enquiry Sent",
+        text: "Our team will contact you shortly",
+        confirmButtonColor: "#67a139",
+      });
 
-  const url = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        inquiry: "",
+        projectId: "",
+        message: "",
+      });
 
-  Swal.fire({
-    icon: "success",
-    title: "Opening WhatsApp...",
-    text: "Please click Send in WhatsApp",
-    showConfirmButton: false,
-    timer: 1500,
-  });
-
-  setTimeout(() => {
-    window.open(url, "_blank");
-  }, 1500);
-
-  setIsModalOpen(false);
-
-  setFormData({
-    name: "",
-    email: "",
-    phone: "",
-    inquiry: "",
-    projectId: "",
-    message: "",
-  });
+      setIsModalOpen(false);
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Failed",
+      text: err.message,
+    });
+  } finally {
+    setLoading(false); // ⭐ enable again
+  }
 };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
+
+  // ⭐ PHONE VALIDATION LIVE
+  if (name === "phone") {
+    const onlyNums = value.replace(/\D/g, "");
+
+    if (onlyNums.length < 10) {
+      setPhoneError("Phone must be 10 digits");
+    } else if (!/^[6-9]/.test(onlyNums)) {
+      setPhoneError("Phone must start with 6,7,8 or 9");
+    } else {
+      setPhoneError("");
+    }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "inquiry" && { projectId: "" }),
+      phone: onlyNums,
     }));
-  };
+
+    return;
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
   const handlePrev = () => {
     if (!testimonials.length) return;
@@ -427,7 +468,7 @@ Message: ${message || "-"}`;
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-999999999 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl w-[95%] sm:w-[90%] md:max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto relative mx-2">
             {/* CLOSE BUTTON */}
             <button
@@ -449,7 +490,7 @@ Message: ${message || "-"}`;
 
             {/* FORM */}
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8">
-              <div className="space-y-4 sm:space-y-5 md:space-y-6">
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">   
                 {/* NAME */}
                 <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
                   <User className="w-5 h-5 text-gray-400" />
@@ -481,15 +522,15 @@ Message: ${message || "-"}`;
                 {/* PHONE */}
                 <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
                   <Phone className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    placeholder="Phone Number"
-                    className="flex-1 outline-none text-gray-900"
-                  />
+                 <input
+  type="tel"
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  maxLength={10}
+  placeholder="Phone Number"
+  required
+/>
                 </div>
 
                 {/* INQUIRY TYPE */}
@@ -547,13 +588,17 @@ Message: ${message || "-"}`;
                 </div>
 
                 {/* SUBMIT */}
-                <button
-                  type="submit"
-                  className="w-full bg-[#67a139] hover:bg-[#4a8f2f] text-white py-3 sm:py-4 rounded-full font-semibold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
-                >
-                  <Send className="w-5 h-5" />
-                  Send Enquiry
-                </button>
+               <button
+  type="submit"
+  disabled={loading || phoneError}
+  className={`w-full py-4 rounded-full font-semibold transition ${
+    loading || phoneError
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-[#67a139] hover:bg-[#4a8f2f] text-white"
+  }`}
+>
+  {loading ? "Sending..." : "Send Enquiry"}
+</button>
               </div>
             </form>
           </div>
@@ -1217,20 +1262,29 @@ Message: ${message || "-"}`;
               </div>
 
               {/* Phone */}
-              <div className="relative">
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="peer w-full border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-gray-900 placeholder-transparent focus:border-gray-900 outline-none"
-                  placeholder="Phone Number"
-                  required
-                />
-                <label className="absolute left-3 sm:left-4 -top-2 bg-white px-1 text-xs sm:text-sm text-gray-600 peer-placeholder-shown:top-2.5 sm:peer-placeholder-shown:top-3 transition-all peer-focus:-top-2">
-                  Phone Number *
-                </label>
-              </div>
+             <div className="relative">
+  <input
+    type="tel"
+    name="phone"
+    value={formData.phone}
+    onChange={handleChange}
+    maxLength={10}
+    className={`peer w-full border rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-gray-900 placeholder-transparent outline-none
+    ${phoneError ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-gray-900"}`}
+    placeholder="Phone Number"
+    required
+  />
+
+  <label className="absolute left-3 sm:left-4 -top-2 bg-white px-1 text-xs sm:text-sm text-gray-600 peer-placeholder-shown:top-2.5 sm:peer-placeholder-shown:top-3 transition-all peer-focus:-top-2">
+    Phone Number *
+  </label>
+
+  {phoneError && (
+    <p className="text-red-500 text-xs mt-1">
+      {phoneError}
+    </p>
+  )}
+</div>
 
               {/* Inquiry Type */}
               <div className="relative">

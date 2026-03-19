@@ -545,6 +545,47 @@ const ChatAssistant = () => {
         .vp-scroll-top { position:fixed; bottom:28px; right:32px; width:48px; height:48px; border-radius:50%; background:#111827; color:white; border:none; cursor:pointer; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(0,0,0,.25); transition:all .3s ease; z-index:9999; }
         .vp-scroll-top:hover { background:#5ea832; transform:translateY(-4px); box-shadow:0 10px 30px rgba(94,168,50,.5); }
 
+        /* ── WhatsApp FAB ── */
+        .vp-wa-fab {
+          position: fixed;
+          bottom: 168px;   
+          right: 28px;
+          z-index: 9999;
+          text-decoration: none;
+        }
+
+        .vp-wa-ring {
+          position: absolute;
+          inset: -6px;
+          border-radius: 50%;
+          border: 2px solid rgba(37,211,102,.35);
+          animation: waPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes waPulse {
+          0%,100% { transform: scale(1); opacity: .7 }
+          50% { transform: scale(1.15); opacity: 0 }
+        }
+
+        .vp-wa-inner {
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          background: #67a139;
+          display: grid;           /* ⭐ BEST CENTERING */
+          place-items: center;     /* ⭐ Perfect center */
+          box-shadow: 0 8px 24px rgba(37,211,102,.5),0 2px 8px rgba(0,0,0,.2);
+          transition: all .3s cubic-bezier(.34,1.56,.64,1);
+        }
+        .vp-wa-inner svg {
+          transform: translateY(-1px);
+        }
+
+        .vp-wa-inner:hover {
+          transform: scale(1.08) rotate(-8deg);
+          box-shadow: 0 14px 36px rgba(37,211,102,.65),0 4px 12px rgba(0,0,0,.25);
+        }
+
         /* ── Mobile ── */
         @media (max-width: 480px) {
           .vp-window { width:100%; height:100%; bottom:0; right:0; border-radius:0; }
@@ -560,47 +601,20 @@ const ChatAssistant = () => {
           .vp-bubble--bot table { font-size:11.5px; }
           .vp-bubble--bot table th,
           .vp-bubble--bot table td { padding:6px 6px; }
+
+          /* WhatsApp FAB mobile adjustments */
+          .vp-wa-fab {
+            bottom: 150px;    /* keep above main FAB */
+            right: 18px;      /* move slightly right */
+          }
+          .vp-wa-inner {
+            width: 48px;
+            height: 48px;
+          }
+          .vp-wa-ring {
+            inset: -4px;
+          }
         }
-          /* ── WhatsApp FAB ── */
-.vp-wa-fab {
-  position: fixed;
-  bottom: 168px;   
-  right: 28px;
-  z-index: 9999;
-  text-decoration: none;
-}
-
-.vp-wa-ring {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 2px solid rgba(37,211,102,.35);
-  animation: waPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes waPulse {
-  0%,100% { transform: scale(1); opacity: .7 }
-  50% { transform: scale(1.15); opacity: 0 }
-}
-
-.vp-wa-inner {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: #67a139;
-  display: grid;           /* ⭐ BEST CENTERING */
-  place-items: center;     /* ⭐ Perfect center */
-  box-shadow: 0 8px 24px rgba(37,211,102,.5),0 2px 8px rgba(0,0,0,.2);
-  transition: all .3s cubic-bezier(.34,1.56,.64,1);
-}
-  .vp-wa-inner svg {
-  transform: translateY(-1px);
-}
-
-.vp-wa-inner:hover {
-  transform: scale(1.08) rotate(-8deg);
-  box-shadow: 0 14px 36px rgba(37,211,102,.65),0 4px 12px rgba(0,0,0,.25);
-}z
       `}</style>
     </>
   );

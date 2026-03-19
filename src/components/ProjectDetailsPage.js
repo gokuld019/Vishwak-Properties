@@ -85,7 +85,8 @@ export default function ProjectDetailsPage({ projectId }) {
   const [statsRaw, setStatsRaw] = useState(null);
   const [heroImage, setHeroImage] = useState("");
   const [leadVerified, setLeadVerified] = useState(false);
-  
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
   
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
@@ -383,12 +384,26 @@ const extractMapSrc = (iframeHtml) => {
   }, [projectId]);
 
   // Handle form changes
-  const handleChange = (e) => {
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name === "phone") {
+    const clean = value.replace(/\D/g, "").slice(0, 10);
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      phone: clean,
     }));
-  };
+
+    setPhoneError(clean.length !== 10);
+    return;
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
   useEffect(() => {
   const lead = localStorage.getItem("lead_verified");
@@ -1162,59 +1177,65 @@ sphereRef.current = sphere;
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await fetch(`${API_BASE}/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  if (phoneError || loadingSubmit) return;
 
-      const data = await res.json();
+  setLoadingSubmit(true);
 
-      if (!res.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops!",
-          text: data.message || "Failed to submit enquiry",
-        });
-        return;
-      }
+  try {
+    const res = await fetch(`${API_BASE}/contacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-      Swal.fire({
-        icon: "success",
-        title: "Message Sent!",
-        text: "Our team will get back to you shortly.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+    const data = await res.json();
 
-      setShowEnquiry(false);
-
-      // Auto-download brochure after successful enquiry
-      if (downloadAfterEnquiry && brochureUrl) {
-        window.open(brochureUrl, "_blank");
-      }
-
-      setDownloadAfterEnquiry(false);
-
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        inquiry: "",
-        message: "",
-      });
-    } catch (error) {
-      console.error("Error submitting contact:", error);
+    if (!res.ok) {
       Swal.fire({
         icon: "error",
-        title: "Server Error",
-        text: "Please try again later.",
+        title: "Oops!",
+        text: data.message || "Failed to submit enquiry",
       });
+      setLoadingSubmit(false);
+      return;
     }
-  };
+
+    Swal.fire({
+      icon: "success",
+      title: "Message Sent!",
+      text: "Our team will get back to you shortly.",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+
+    setShowEnquiry(false);
+
+    if (downloadAfterEnquiry && brochureUrl) {
+      window.open(brochureUrl, "_blank");
+    }
+
+    setDownloadAfterEnquiry(false);
+
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      inquiry: "",
+      message: "",
+    });
+
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Server Error",
+      text: "Please try again later.",
+    });
+  }
+
+  setLoadingSubmit(false);
+};
 
 const openOtpWidget = () => {
   const rawPhone = leadForm.phone.replace(/\D/g, '');
@@ -1240,7 +1261,7 @@ const openOtpWidget = () => {
       console.log('OTP VERIFIED:', data);
 
       try {
-        await axios.post(`${API_BASE}/contact/widget-lead`, {
+        await axios.post(`${API_BASE}/contacts/widget-lead`, {
           name: nameValue,
           email: 'otp@lead.com',
           phone: formattedPhone,
@@ -3081,15 +3102,21 @@ overflow-y-auto
                 <div className="relative">
                   <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] transition-colors pb-2">
                     <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      placeholder="Phone Number"
-                      className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base min-w-0"
-                    />
+                   <input
+  type="tel"
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  required
+  placeholder="10 digit Mobile Number"
+  className="flex-1 outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base min-w-0"
+/>
+
+{phoneError && (
+  <p className="text-red-500 text-xs mt-1">
+    Enter valid 10 digit mobile number
+  </p>
+)}
                   </div>
                 </div>
 
@@ -3150,12 +3177,18 @@ overflow-y-auto
 
                 {/* Submit */}
                 <button
-                  type="submit"
-                  className="w-full bg-[#67a139] hover:bg-[#4a8f2f] text-white py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  <Send className="w-5 h-5" />
-                  Send Enquiry
-                </button>
+  type="submit"
+  disabled={loadingSubmit || phoneError}
+  className={`w-full py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg
+  ${
+    loadingSubmit || phoneError
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-[#67a139] hover:bg-[#4a8f2f] text-white"
+  }`}
+>
+  <Send className="w-5 h-5" />
+  {loadingSubmit ? "Sending..." : "Send Enquiry"}
+</button>
               </form>
             </div>
           </div>
