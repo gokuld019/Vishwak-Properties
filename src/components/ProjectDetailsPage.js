@@ -1262,11 +1262,14 @@ const openOtpWidget = () => {
 
       try {
         await axios.post(`${API_BASE}/contacts/widget-lead`, {
-          name: nameValue,
-          email: 'otp@lead.com',
-          phone: formattedPhone,
-          location: locationValue,
-        });
+  name: nameValue,
+  email: "otp@lead.com",
+  phone: rawPhone,   // ⭐ send 10 digit only
+  inquiry: "brochure",
+  projectId: Number(projectId),
+  message: "Brochure Download Lead",
+  location: locationValue
+});
 
         localStorage.setItem('lead_verified', 'true');
         setLeadVerified(true);
