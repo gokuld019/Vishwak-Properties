@@ -1,166 +1,184 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronUp, Instagram, Facebook, Youtube, Linkedin, ArrowUpRight } from "lucide-react";
+import { Instagram, Facebook, Youtube, Linkedin, MapPin, Phone, Mail, ArrowUpRight, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import ChatAssistant from "@/components/chatassistant";
 
-/* ✅ DEFINE API_BASE BEFORE USING IT */
-const API_BASE = `${process.env.NEXT_PUBLIC_API_LIVE_URL}`;
-
-/* ✅ UPDATED URL ONLY */
-const ongoingProjects = [
-  ["Aira Avenue", `/project-details/1`],
-  
-];
+const ongoingProjects   = [["Aira Avenue", "/project-details/1"]];
+const completedProjects = [["Sameera Grand City – East Tambaram", "/project-details/14"]];
 
 const socialLinks = [
-  { Icon: Facebook, href: "https://www.facebook.com/Vishwakproperties/", label: "Facebook" },
+  { Icon: Facebook,  href: "https://www.facebook.com/Vishwakproperties/",                        label: "Facebook"  },
   { Icon: Instagram, href: "https://www.instagram.com/vishwakvaluehomes?igsh=a3Q2N3Z6d2ExemN3", label: "Instagram" },
-  { Icon: Youtube, href: "https://www.youtube.com/@VishwakValueHomes", label: "YouTube" },
-  { Icon: Linkedin, href: "linkedin.com/company/104862350/admin/dashboard/", label: "LinkedIn" },
+  { Icon: Linkedin,  href: "https://linkedin.com/company/104862350/",                            label: "LinkedIn"  },
+  { Icon: Youtube,   href: "https://www.youtube.com/@VishwakValueHomes",                         label: "YouTube"   },
 ];
 
-const navLinks = [
+const quickLinks = [
+  ["Home",     "/#"],
   ["About Us", "/about"],
-  ["Projects", "/projects"],
-  ["Blog", "/blog"],
-  ["Contact", "/contact"],
+  ["Emi Calculator", "/emi-calculator"],
+  ["ContactUs",  "/contactus"],
 ];
+
+const hoverGreen = (e) => { e.currentTarget.style.color = "#111"; };
+const hoverGray  = (e) => { e.currentTarget.style.color = "#999"; };
 
 export default function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
 
-  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
-
   return (
     <>
       <ChatAssistant />
 
-      <footer className="relative w-full bg-white border-t border-[#e4ede0] overflow-hidden text-[#1a2e1a]">
+      <footer
+        style={{
+          background: "#ffffff",
+          fontFamily: "'DM Sans','Helvetica Neue',sans-serif",
+          position: "relative",
+          overflow: "hidden",
+        }}
+        className="w-full text-[#111]"
+      >
 
-        <div
-          className="pointer-events-none absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(103,161,57,0.07) 0%, transparent 68%)" }}
-        />
+        {/* Subtle grid texture */}
+        <div aria-hidden="true" style={{
+          position:"absolute",inset:0,pointerEvents:"none",
+          backgroundImage:"linear-gradient(rgba(103,161,57,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(103,161,57,0.07) 1px,transparent 1px)",
+          backgroundSize:"48px 48px",
+        }} />
 
-        <div
-          className="pointer-events-none absolute bottom-8 -left-16 w-[280px] h-[280px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(103,161,57,0.05) 0%, transparent 70%)" }}
-        />
+       
 
-        <div className="relative max-w-[1280px] mx-auto px-6 sm:px-10 pt-14 sm:pt-16">
+        {/* ── Four-column body ── */}
+        <div style={{ position:"relative" }} className="max-w-[1280px] mx-auto px-6 sm:px-10 py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-10">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-14">
-
-            <div className="order-1 md:order-1 flex justify-center md:justify-start">
-              <Link href="/" className="inline-flex items-center gap-3 group w-fit">
-                <img
-                  src="/Logo.png"
-                  alt="Vishwak Properties"
-                  className="h-24 md:h-30 w-auto object-contain group-hover:opacity-80 transition-opacity duration-200"
-                />
+            {/* 1 – Logo + description + socials */}
+            <div className="col-span-2 sm:col-span-1" style={{ display:"flex",flexDirection:"column",gap:"1.1rem" }}>
+              <Link href="/">
+                <img src="/Logo.png" alt="Vishwak Properties" style={{ height:"5rem",width:"auto",objectFit:"contain" }} />
               </Link>
-            </div>
-
-            <div className="order-2 md:order-4">
-              <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
-                Get In Touch
+              <p style={{ fontSize:"0.78rem",lineHeight:"1.65",color:"#999",margin:0 }}>
+                Chennai's trusted real-estate developer — delivering quality homes with transparency and care.
               </p>
-
-<a href="tel:917401131313">
-  <p className="text-[#1a2e1a] font-bold leading-none mb-2">
-    +91 74011 31313
-  </p>
-</a>
-
-<a href="tel:919361815551">
-  <p className="text-[#1a2e1a] font-bold leading-none">
-    +91 93618 15551
-  </p>
-</a>
-
-              <a
-                href="mailto:info@vishwakproperties.in"
-                className="text-sm text-[#5a7250] hover:text-[#67a139] transition-colors duration-200"
-              >
-                info@vishwakproperties.in
-              </a>
-
-              <div className="flex items-center gap-2 mt-6">
+              <div style={{ display:"flex",gap:"0.4rem",marginTop:"0.25rem" }}>
                 {socialLinks.map(({ Icon, href, label }, i) => (
                   <a
-                    key={i}
-                    href={href}
-                    aria-label={label}
-                    className="w-10 h-10 rounded-full border border-[#d4e5c8] bg-[#f7faf5] flex items-center justify-center text-[#5a7250] hover:bg-[#67a139] hover:border-[#67a139] hover:text-white hover:-translate-y-1 hover:shadow-[0_6px_16px_rgba(103,161,57,0.3)] transition-all duration-200 cursor-pointer"
+                    key={i} href={href} aria-label={label}
+                    style={{ width:"2rem",height:"2rem",borderRadius:"0.4rem",display:"flex",alignItems:"center",justifyContent:"center",background:"#f2f2f2",color:"#666",transition:"all 0.2s",textDecoration:"none" }}
+                    onMouseEnter={e => { e.currentTarget.style.background="#67a139"; e.currentTarget.style.color="#fff"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background="#f2f2f2"; e.currentTarget.style.color="#666"; }}
                   >
-                    <Icon size={16} />
+                    <Icon size={13} />
                   </a>
                 ))}
               </div>
             </div>
 
-            <div className="order-3 md:order-2">
-              <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
-                Ongoing Projects
+            {/* 2 – Quick Links */}
+            <div>
+              <p style={{ fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#67a139",marginBottom:"1.2rem" }}>
+                Quick Links
               </p>
-              <div className="flex flex-col">
-                {ongoingProjects.map(([label, url], i) => (
-                  <Link
-                    key={i}
-                    href={url}
-                    className="group flex items-center gap-2 text-[#5a7250] text-[0.87rem] py-[0.35rem] border-b border-[#edf3e8] last:border-b-0 hover:text-[#4d8c2a] transition-colors duration-200"
+              <div style={{ display:"flex",flexDirection:"column",gap:"0.7rem" }}>
+                {quickLinks.map(([name, href], i) => (
+                  <Link key={i} href={href}
+                    style={{ display:"flex",alignItems:"center",gap:"0.3rem",fontSize:"0.8rem",color:"#999",textDecoration:"none",transition:"color 0.15s" }}
+                    onMouseEnter={hoverGreen} onMouseLeave={hoverGray}
                   >
-                    <ArrowUpRight
-                      size={13}
-                      className="flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-                    />
-                    {label}
+                    <ChevronRight size={11} style={{ color:"#67a139",opacity:0.5 }} />
+                    {name}
                   </Link>
                 ))}
               </div>
             </div>
 
-            <div className="order-4 md:order-3">
-              <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
-                Completed Projects
+            {/* 3 – Projects */}
+            <div>
+              <p style={{ fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#67a139",marginBottom:"1.2rem" }}>
+                Projects
               </p>
-              <Link
-                href={`${API_BASE}/project-details/14`}
-                className="group flex items-center gap-2 text-[#5a7250] text-[0.87rem] py-[0.35rem] hover:text-[#4d8c2a] transition-colors duration-200"
-              >
-                <ArrowUpRight
-                  size={13}
-                  className="flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-                />
-                Sameera Grand City – East Tambaram
-              </Link>
-            </div>
-
-            <div className="order-5 md:order-3 sm:col-span-2 md:col-span-1">
-              <p className="text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[#67a139] mb-5">
-                Company
-              </p>
-              <div className="flex flex-col">
-                {navLinks.map(([label, url], i) => (
-                  <Link
-                    key={i}
-                    href={url}
-                    className="group flex items-center gap-2 text-[#5a7250] text-[0.87rem] py-[0.35rem] border-b border-[#edf3e8] last:border-b-0 hover:text-[#4d8c2a] transition-colors duration-200"
-                  >
-                    <ArrowUpRight
-                      size={13}
-                      className="flex-shrink-0 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-                    />
-                    {label}
-                  </Link>
+              <p style={{ fontSize:"0.6rem",letterSpacing:"0.13em",textTransform:"uppercase",color:"#bbb",marginBottom:"0.5rem" }}>Ongoing</p>
+              <div style={{ display:"flex",flexDirection:"column",gap:"0.55rem",marginBottom:"1rem" }}>
+                {ongoingProjects.map(([name, href], i) => (
+                  <Link key={i} href={href}
+                    style={{ fontSize:"0.8rem",color:"#999",textDecoration:"none",transition:"color 0.15s" }}
+                    onMouseEnter={hoverGreen} onMouseLeave={hoverGray}
+                  >{name}</Link>
+                ))}
+              </div>
+              <p style={{ fontSize:"0.6rem",letterSpacing:"0.13em",textTransform:"uppercase",color:"#bbb",marginBottom:"0.5rem" }}>Completed</p>
+              <div style={{ display:"flex",flexDirection:"column",gap:"0.55rem" }}>
+                {completedProjects.map(([name, href], i) => (
+                  <Link key={i} href={href}
+                    style={{ fontSize:"0.8rem",color:"#999",textDecoration:"none",transition:"color 0.15s" }}
+                    onMouseEnter={hoverGreen} onMouseLeave={hoverGray}
+                  >{name}</Link>
                 ))}
               </div>
             </div>
 
+            {/* 4 – Contact */}
+            <div>
+              <p style={{ fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.18em",textTransform:"uppercase",color:"#67a139",marginBottom:"1.2rem" }}>
+                Contact Us
+              </p>
+              <div style={{ display:"flex",flexDirection:"column",gap:"0.85rem" }}>
+
+                <div style={{ display:"flex",alignItems:"flex-start",gap:"0.6rem" }}>
+                  <span style={{ width:"1.5rem",height:"1.5rem",borderRadius:"0.3rem",background:"rgba(103,161,57,0.12)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:"0.1rem" }}>
+                    <MapPin size={11} style={{ color:"#67a139" }} />
+                  </span>
+                  <span style={{ fontSize:"0.78rem",color:"#999",lineHeight:"1.55" }}>
+                    OLD NO-113B/28A, NEW NO-18, Kakkan Street, Tambaram West, Chennai{" "}
+                    Chengalpattu, Tamil Nadu – 600045
+                  </span>
+                </div>
+
+                {[
+                  { href:"tel:917401131313",               text:"+91 74011 31313",             Icon:Phone },
+                  { href:"tel:919361815551",               text:"+91 93618 15551",             Icon:Phone },
+                  { href:"mailto:info@vishwakproperties.in",text:"info@vishwakproperties.in",  Icon:Mail  },
+                ].map(({ href, text, Icon:Ic }, i) => (
+                  <a key={i} href={href}
+                    style={{ display:"flex",alignItems:"center",gap:"0.6rem",fontSize:"0.78rem",color:"#999",textDecoration:"none",transition:"color 0.15s" }}
+                    onMouseEnter={hoverGreen} onMouseLeave={hoverGray}
+                  >
+                    <span style={{ width:"1.5rem",height:"1.5rem",borderRadius:"0.3rem",background:"rgba(103,161,57,0.12)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                      <Ic size={11} style={{ color:"#67a139" }} />
+                    </span>
+                    {text}
+                  </a>
+                ))}
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Bottom bar ── */}
+        <div style={{ borderTop:"1px solid #e8e8e8" }}>
+          {/* Green accent line */}
+          <div style={{ height:"2px",background:"linear-gradient(90deg,#67a139 0%,transparent 55%)" }} />
+          <div className="max-w-[1280px] mx-auto px-6 sm:px-10 py-4"
+            style={{ display:"flex",flexDirection:"row",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"0.5rem" }}
+          >
+            <p style={{ fontSize:"0.7rem",color:"#aaa",margin:0 }}>
+              © {new Date().getFullYear()} Vishwak Properties. All rights reserved.
+            </p>
+            <div style={{ display:"flex",gap:"1.25rem" }}>
+              {["Privacy Policy","Terms of Use"].map((t,i) => (
+                <Link key={i} href="/"
+                  style={{ fontSize:"0.7rem",color:"#aaa",textDecoration:"none",transition:"color 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.color="#555"}
+                  onMouseLeave={e => e.currentTarget.style.color="#aaa"}
+                >{t}</Link>
+              ))}
+            </div>
           </div>
         </div>
 

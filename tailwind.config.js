@@ -7,6 +7,13 @@ module.exports = {
   ],
 
   theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      tab: '1000px',
+      lg: '1024px',
+      xl: '1280px',
+    },
     extend: {
       colors: {
         primary: {
@@ -34,23 +41,19 @@ module.exports = {
           900: '#1A1A1A',
         },
       },
-
       translate: {
         'z-[-500px]': '-500px',
         'z-[-200px]': '-200px',
         'z-0': '0',
       },
-
       scale: {
         '150': '1.5',
         '125': '1.25',
         '100': '1',
       },
-
       animation: {
         bounce: 'bounce 2s infinite',
       },
-
       keyframes: {
         bounce: {
           '0%, 100%': { transform: 'translateY(0)' },

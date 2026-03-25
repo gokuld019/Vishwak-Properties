@@ -37,6 +37,29 @@ import { toast } from "sonner";
 import axios from "axios";
 import Swal from "sweetalert2";
 
+
+// ✅ Place EmptyState here — outside the main component
+function EmptyState({ label, hint, onEnquire, buttonLabel }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+        </svg>
+      </div>
+      <p className="font-semibold text-gray-600 text-base">{label} Coming Soon</p>
+      <p className="text-sm text-gray-400 mt-1 max-w-[220px]">{hint}</p>
+      <button
+        onClick={onEnquire}
+        className="mt-5 px-6 py-2 bg-yellow-400 text-gray-900 font-bold rounded-full hover:bg-yellow-500 transition text-sm shadow-md"
+      >
+        {buttonLabel}
+      </button>
+    </div>
+  );
+}
+
+
 export default function ProjectDetailsPage({ projectId }) {
   // ------------------------
   // STATE
@@ -87,7 +110,10 @@ export default function ProjectDetailsPage({ projectId }) {
   const [leadVerified, setLeadVerified] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
-  
+  const [zoomOpen, setZoomOpen] = useState(false);
+const [zoomSrc, setZoomSrc] = useState("");
+const [zoomScale, setZoomScale] = useState(1);
+const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
 
@@ -1950,126 +1976,190 @@ onClick={() => {
             </section>
           )}
 
-          {/* SITE PLAN & PLOT AREA STATEMENT SECTION */}
-          {isPlotProject && (
-            <section
-              id="section-siteplan"
-              style={{ scrollMarginTop: totalStickyHeight }}
-            >
-              <div className="">
-                {/* Header */}
-                <div className="text-center px-4">
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4">
-                    {projectData?.sitePlanHeading ? (
-                      projectData.sitePlanHeading
-                    ) : (
-                      <>
-                        <span className="text-yellow-500">Layout</span>{" "}
-                        <span className="text-gray-900">Plan</span>
-                      </>
-                    )}
-                  </h2>
-                  <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                    {projectData?.sitePlanDescription ||
-                      "Well-planned plots with sunlight, privacy and easy access for building your dream house"}
-                  </p>
-                </div>
 
-                {/* Sub-tab + Content Layout */}
-                <div className="flex flex-col md:flex-row gap-6 px-4">
-                  {/* Left — Sub Tabs */}
-                  <div className="flex flex-row md:flex-col gap-3 md:gap-0 md:w-56 flex-shrink-0">
-                    {/* SITE PLAN tab */}
-                    <button
-                      onClick={() => setSitePlanSubTab("sitePlan")}
-                      className={`cursor-pointer relative text-left px-5 py-4 font-semibold text-sm tracking-wide transition-all duration-200 ${
-                        sitePlanSubTab === "sitePlan"
-                          ? "bg-[#67a139] text-white shadow-md"
-                          : "text-gray-500 hover:text-gray-800"
-                      }`}
-                    >
-                      SITE PLAN
-                      {sitePlanSubTab === "sitePlan" && (
-                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-700 rounded-r" />
-                      )}
-                    </button>
+          
 
-                    <div className="hidden md:block w-full border-b border-gray-200 my-1" />
+         {/* SITE PLAN & PLOT AREA STATEMENT SECTION */}
+{isPlotProject && (
+  <section
+    id="section-siteplan"
+    style={{ scrollMarginTop: totalStickyHeight }}
+    className="py-16 px-4 bg-gradient-to-b from-white to-gray-50"
+  >
+    {/* Zoom Lightbox Modal */}
+    {zoomOpen && (
+      <div
+        className="fixed inset-0 z-[999] flex items-center justify-center"
+        style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(6px)" }}
+        onClick={() => { setZoomOpen(false); setZoomScale(1); setZoomPos({ x: 0, y: 0 }); }}
+      >
+        {/* Close */}
+        <button
+          onClick={() => { setZoomOpen(false); setZoomScale(1); setZoomPos({ x: 0, y: 0 }); }}
+          className="absolute top-5 right-5 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 border border-white/20"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M1 1l16 16M17 1L1 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
 
-                    {/* PLOT AREA STATEMENT tab */}
-                    <button
-                      onClick={() => setSitePlanSubTab("plotArea")}
-                      className={`cursor-pointer relative text-left px-5 py-4 font-semibold text-sm tracking-wide transition-all duration-200 ${
-                        sitePlanSubTab === "plotArea"
-                          ? "bg-[#67a139] text-white shadow-md"
-                          : "text-gray-500 hover:text-gray-800"
-                      }`}
-                    >
-                      PLOT AREA STATEMENT
-                      {sitePlanSubTab === "plotArea" && (
-                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-700 rounded-r" />
-                      )}
-                    </button>
+        {/* Zoom Controls */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoomScale(s => Math.max(0.5, s - 0.25)); }}
+            className="w-8 h-8 flex items-center justify-center text-white hover:text-yellow-400 transition-colors text-lg font-light"
+          >−</button>
+          <span className="text-white/70 text-xs font-mono w-12 text-center">{Math.round(zoomScale * 100)}%</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoomScale(s => Math.min(4, s + 0.25)); }}
+            className="w-8 h-8 flex items-center justify-center text-white hover:text-yellow-400 transition-colors text-lg font-light"
+          >+</button>
+          <div className="w-px h-4 bg-white/20 mx-1" />
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoomScale(1); setZoomPos({ x: 0, y: 0 }); }}
+            className="text-white/70 hover:text-white text-xs font-medium transition-colors px-1"
+          >Reset</button>
+        </div>
 
-                    <div className="hidden md:block w-px bg-gray-200 mx-5 mt-2 flex-1" />
-                  </div>
+        {/* Image (click to stop propagation, drag to pan) */}
+        <div
+          className="overflow-hidden w-[90vw] h-[85vh] flex items-center justify-center cursor-grab active:cursor-grabbing"
+          onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => {
+            e.preventDefault();
+            setZoomScale(s => Math.min(4, Math.max(0.5, s - e.deltaY * 0.001)));
+          }}
+          onMouseDown={(e) => {
+            const startX = e.clientX - zoomPos.x;
+            const startY = e.clientY - zoomPos.y;
+            const onMove = (mv) => setZoomPos({ x: mv.clientX - startX, y: mv.clientY - startY });
+            const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onUp);
+          }}
+        >
+          <img
+            src={zoomSrc}
+            alt="Zoomed Layout"
+            style={{
+              transform: `scale(${zoomScale}) translate(${zoomPos.x / zoomScale}px, ${zoomPos.y / zoomScale}px)`,
+              transition: "transform 0.15s ease",
+              maxWidth: "85vw",
+              maxHeight: "80vh",
+              objectFit: "contain",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
+    )}
 
-                  {/* Right — Content Panel */}
-                  <div className="flex-1 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 min-h-[280px] sm:min-h-[380px] flex items-center justify-center">
-                    {/* SITE PLAN IMAGE */}
-                    {sitePlanSubTab === "sitePlan" ? (
-                      projectData?.sitePlanImage ? (
-                        <img
-                          src={`${Imagebase}${projectData.sitePlanImage}`}
-                          alt="Site Plan"
-                          className="w-full h-full object-contain max-h-[400px] sm:max-h-[520px] p-4 transition-all duration-300"
-                        />
-                      ) : (
-                        <div className="text-center text-gray-400 py-20 px-8">
-                          <p className="font-semibold text-gray-500 text-base">
-                            Site Plan Coming Soon
-                          </p>
-                          <p className="text-sm text-gray-400 mt-1">
-                            Contact us to get the latest layout details
-                          </p>
-                          <button
-                            onClick={() => setShowEnquiry(true)}
-                            className="mt-5 px-6 py-2 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition text-sm"
-                          >
-                            Enquire Now
-                          </button>
-                        </div>
-                      )
-                    ) : (
-                      /* PLOT AREA STATEMENT IMAGE */
-                      projectData?.plotAreaStatementImage ? (
-                        <img
-                          src={`${Imagebase}${projectData.plotAreaStatementImage}`}
-                          alt="Plot Area Statement"
-                          className="w-full h-full object-contain max-h-[400px] sm:max-h-[520px] p-4 transition-all duration-300"
-                        />
-                      ) : (
-                        <div className="text-center text-gray-400 py-20 px-8">
-                          <p className="font-semibold text-gray-500 text-base">
-                            Plot Area Statement Coming Soon
-                          </p>
-                          <p className="text-sm text-gray-400 mt-1">
-                            Detailed layout data will be available shortly
-                          </p>
-                          <button
-                            onClick={() => setShowEnquiry(true)}
-                            className="mt-5 px-6 py-2 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition text-sm"
-                          >
-                            Get Details
-                          </button>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-10">
+        
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 tracking-tight">
+          {projectData?.sitePlanHeading ? (
+            projectData.sitePlanHeading
+          ) : (
+            <>
+              <span className="text-yellow-500">Layout</span>{" "}
+              <span className="text-gray-900">Plan</span>
+            </>
           )}
+        </h2>
+        <p className="text-sm md:text-base text-gray-500 max-w-xl mx-auto leading-relaxed">
+          {projectData?.sitePlanDescription ||
+            "Well-planned plots with sunlight, privacy and easy access to build a dream home."}
+        </p>
+      </div>
+
+      {/* Card */}
+      <div className="rounded-3xl overflow-hidden shadow-2xl shadow-gray-200/80 border border-gray-100 bg-white">
+        {/* Pill Tab Bar */}
+        <div className="flex items-center gap-1 px-6 pt-5 pb-0 border-b border-gray-100">
+          {[
+            { key: "sitePlan", label: "Site Plan" },
+            { key: "plotArea", label: "Plot Area Statement" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setSitePlanSubTab(tab.key)}
+              className={`relative px-5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 rounded-t-xl focus:outline-none
+                ${sitePlanSubTab === tab.key
+                  ? "text-[#67a139] border-b-2 border-[#67a139] bg-green-50/50"
+                  : "text-gray-400 hover:text-gray-600"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <div className="relative min-h-[340px] sm:min-h-[480px] flex items-center justify-center bg-[#fafafa] p-4 sm:p-8">
+
+          {/* Zoom Button (top-right corner of image area) */}
+          {((sitePlanSubTab === "sitePlan" && projectData?.sitePlanImage) ||
+            (sitePlanSubTab === "plotArea" && projectData?.plotAreaStatementImage)) && (
+            <button
+              onClick={() => {
+                setZoomSrc(`${Imagebase}${sitePlanSubTab === "sitePlan" ? projectData.sitePlanImage : projectData.plotAreaStatementImage}`);
+                setZoomScale(1);
+                setZoomPos({ x: 0, y: 0 });
+                setZoomOpen(true);
+              }}
+              className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-white border border-gray-200 shadow-md text-gray-600 hover:text-[#67a139] hover:border-[#67a139] hover:shadow-lg transition-all duration-200 rounded-full px-3 py-1.5 text-xs font-semibold"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <path d="M11 8v6M8 11h6"/>
+              </svg>
+              Zoom In
+            </button>
+          )}
+
+          {/* Image or Empty State */}
+          {sitePlanSubTab === "sitePlan" ? (
+            projectData?.sitePlanImage ? (
+              <img
+                src={`${Imagebase}${projectData.sitePlanImage}`}
+                alt="Site Plan"
+                className="w-full object-contain max-h-[420px] sm:max-h-[540px] cursor-zoom-in rounded-xl transition-all duration-300 hover:scale-[1.01]"
+                onClick={() => {
+                  setZoomSrc(`${Imagebase}${projectData.sitePlanImage}`);
+                  setZoomScale(1);
+                  setZoomPos({ x: 0, y: 0 });
+                  setZoomOpen(true);
+                }}
+              />
+            ) : (
+              <EmptyState label="Site Plan" hint="Contact us to get the latest layout details" onEnquire={() => setShowEnquiry(true)} buttonLabel="Enquire Now" />
+            )
+          ) : (
+            projectData?.plotAreaStatementImage ? (
+              <img
+                src={`${Imagebase}${projectData.plotAreaStatementImage}`}
+                alt="Plot Area Statement"
+                className="w-full object-contain max-h-[420px] sm:max-h-[540px] cursor-zoom-in rounded-xl transition-all duration-300 hover:scale-[1.01]"
+                onClick={() => {
+                  setZoomSrc(`${Imagebase}${projectData.plotAreaStatementImage}`);
+                  setZoomScale(1);
+                  setZoomPos({ x: 0, y: 0 });
+                  setZoomOpen(true);
+                }}
+              />
+            ) : (
+              <EmptyState label="Plot Area Statement" hint="Detailed layout data will be available shortly" onEnquire={() => setShowEnquiry(true)} buttonLabel="Get Details" />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+          
 {/* Modern Sleek Lead Popup */}
 {showLeadPopup && (
 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

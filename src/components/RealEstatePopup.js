@@ -54,7 +54,7 @@ export default function PropertyPopup() {
         {/* DESKTOP */}
         <div className="hidden md:block  ">
           <img
-            src="/popup-web.jpeg"
+            src="/popup.jpeg"
             alt="Property Desktop"
             className=" w-full "
           />
@@ -63,7 +63,7 @@ export default function PropertyPopup() {
         {/* MOBILE */}
         <div className="block md:hidden ">
           <img
-            src="/Popup-mobile1.jpeg"
+            src="/Popmob.jpeg"
             alt="Property Mobile"
             className=""
           />

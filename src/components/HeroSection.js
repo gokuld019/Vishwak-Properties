@@ -662,7 +662,7 @@ const [expandedId, setExpandedId] = useState(null);
                 <span className="text-gray-400 hidden sm:block">•</span>
 
                 {/* OFFER */}
-                <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
+                {/* <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
                   <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
                   <span className="text-green-400 hidden xs:inline">
                     OFFER:
@@ -673,7 +673,7 @@ const [expandedId, setExpandedId] = useState(null);
                     Book Now & Get Free Registration | Limited Period
                   </span>
                   <span className="sm:hidden"> Free Registration</span>
-                </span>
+                </span> */}
 
                 {/* Duplicate for seamless marquee */}
                 <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
@@ -792,19 +792,21 @@ const [expandedId, setExpandedId] = useState(null);
       href={`/project-details/${recentProjects[0].projectId}`}
       className="block w-full"
     >
-     {/* Desktop Banner */}
-<div
-  className="hidden md:block w-full 
-             aspect-[1920/807] 
-             bg-cover bg-center cursor-pointer"
-  style={{ backgroundImage: "url('/updatebanner.png')" }}
-/>
+      {/* Desktop Banner */}
+      <div
+        className="hidden md:block w-full 
+                   aspect-[1920/807] 
+                   bg-cover bg-center cursor-pointer"
+        style={{ backgroundImage: "url('/updatebanner.png')" }}
+      />
 
-{/* Mobile Banner */}
-<div
-  className="block md:hidden h-[500px] bg-cover bg-center cursor-pointer"
-  style={{ backgroundImage: "url('/mobile.png')" }}
-/>
+      {/* Mobile Banner */}
+      <div
+        className="block md:hidden w-full 
+                   aspect-[9/16] 
+                   bg-cover bg-center cursor-pointer"
+        style={{ backgroundImage: "url('/mobile.png')" }}
+      />
     </Link>
   ) : (
     <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 text-gray-500">
