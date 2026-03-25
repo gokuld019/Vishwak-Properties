@@ -63,7 +63,7 @@ export default function PropertyPopup() {
         {/* MOBILE */}
         <div className="block md:hidden ">
           <img
-            src="/Popmob.jpeg"
+            src="/popmob.jpeg"
             alt="Property Mobile"
             className=""
           />

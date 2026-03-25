@@ -233,3 +233,21 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+
+.footerTitle{
+  @apply text-[11px] font-bold tracking-[0.2em] uppercase text-[#67a139];
+}
+
+.footerSub{
+  @apply text-[10px] uppercase tracking-[0.15em] text-gray-400;
+}
+
+.footerLink{
+  @apply flex items-center gap-2 text-[14px] text-gray-500 hover:text-[#111] transition;
+}
+
+.footerLinkSimple{
+  @apply text-[14px] text-gray-500 hover:text-[#111] transition;
+}
