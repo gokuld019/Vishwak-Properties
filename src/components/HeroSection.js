@@ -589,10 +589,11 @@ const scrollRight = () => {
                   />
                 </div>
 
-                {/* PHONE */}
-                <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                 <input
+               <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
+
+  <Phone className="w-5 h-5 text-gray-400" />
+
+ <input
   type="tel"
   name="phone"
   value={formData.phone}
@@ -600,7 +601,19 @@ const scrollRight = () => {
   maxLength={10}
   placeholder="Phone Number"
   required
+  className="
+    w-full
+    bg-transparent
+    outline-none
+    border-none
+    focus:ring-0
+    text-[16px]
+    font-normal
+    text-gray-700
+    placeholder:text-gray-400
+  "
 />
+
                 </div>
 
                 {/* INQUIRY TYPE */}
