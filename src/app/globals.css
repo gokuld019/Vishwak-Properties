@@ -251,3 +251,5 @@
 .footerLinkSimple{
   @apply text-[14px] text-gray-500 hover:text-[#111] transition;
 }
+
+

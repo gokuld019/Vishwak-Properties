@@ -5,7 +5,7 @@ import { Instagram, Facebook, Youtube, Linkedin, MapPin, Phone, Mail, ChevronRig
 import { usePathname } from "next/navigation";
 import ChatAssistant from "@/components/chatassistant";
 
-const ongoingProjects   = [["Aira Avenue", "/project-details/1"]];
+const ongoingProjects   = [["Aira Avenue-Vandalur", "/project-details/1"]];
 const completedProjects = [["Sameera Grand City – East Tambaram", "/project-details/14"]];
 
 const socialLinks = [

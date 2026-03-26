@@ -73,6 +73,65 @@ const [expandedId, setExpandedId] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const sectionRef = useRef(null);
+  const amenityScrollRef = useRef(null);
+const amenityAnimRef = useRef(null);
+const amenityIsDragging = useRef(false);
+const amenityStartX = useRef(0);
+const amenityScrollLeft = useRef(0);
+
+useEffect(() => {
+  if (!isMobile) return;
+  const el = amenityScrollRef.current;
+  if (!el) return;
+
+  let paused = false;
+
+  // Auto scroll
+  const autoScroll = () => {
+    if (!paused && el) {
+      el.scrollLeft += 0.8;
+      // Reset to start for infinite loop
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft = 0;
+      }
+    }
+    amenityAnimRef.current = requestAnimationFrame(autoScroll);
+  };
+
+  amenityAnimRef.current = requestAnimationFrame(autoScroll);
+
+  // Touch handlers
+  const onTouchStart = (e) => {
+    paused = true;
+    amenityIsDragging.current = true;
+    amenityStartX.current = e.touches[0].pageX - el.offsetLeft;
+    amenityScrollLeft.current = el.scrollLeft;
+  };
+
+  const onTouchMove = (e) => {
+    if (!amenityIsDragging.current) return;
+    const x = e.touches[0].pageX - el.offsetLeft;
+    const walk = (amenityStartX.current - x) * 1.2;
+    el.scrollLeft = amenityScrollLeft.current + walk;
+  };
+
+  const onTouchEnd = () => {
+    amenityIsDragging.current = false;
+    // Resume after 2s
+    setTimeout(() => { paused = false; }, 2000);
+  };
+
+  el.addEventListener("touchstart", onTouchStart, { passive: true });
+  el.addEventListener("touchmove", onTouchMove, { passive: true });
+  el.addEventListener("touchend", onTouchEnd);
+
+  return () => {
+    cancelAnimationFrame(amenityAnimRef.current);
+    el.removeEventListener("touchstart", onTouchStart);
+    el.removeEventListener("touchmove", onTouchMove);
+    el.removeEventListener("touchend", onTouchEnd);
+  };
+}, [isMobile, amenities]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -441,11 +500,22 @@ const [expandedId, setExpandedId] = useState(null);
     ? currentSlide % activeBanners.length
     : 0;
 
+
+const scrollRef = useRef(null)
+
+const scrollLeft = () => {
+  scrollRef.current.scrollBy({ left: -300, behavior: "smooth" })
+}
+
+const scrollRight = () => {
+  scrollRef.current.scrollBy({ left: 300, behavior: "smooth" })
+}
+
   return (
     <>
       <style>{`
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-marquee { animation: marquee 30s linear infinite; }
+        .animate-marquee { animation: marquee 13s linear infinite; }
         .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
 
@@ -606,21 +676,23 @@ const [expandedId, setExpandedId] = useState(null);
       )}
 
       {/* Hero Section - Mobile Responsive */}
-      <div className="relative  overflow-hidden bg-white">
+<div className="relative w-full h-[65vh] sm:h-[75vh] md:h-[90vh] lg:h-screen">      
       
       
-      
-     <div className="relative w-full h-full" id="">
+     <div className="relative w-full h-[65vh] sm:h-[75vh] md:h-[90vh] lg:h-screen">
+
   {activeBanners.length > 0 ? (
     <Image
+      priority
       src={getImageUrl(activeBanners[safeSlideIndex].image)}
-      alt={activeBanners[safeSlideIndex].title || "Slide"}
+      alt="Banner"
       fill
-      className="object-cover transition-all duration-700 !relative"
+      className="object-cover transition-all duration-700"
     />
   ) : (
-    <div className="w-full h-full bg-gray-300" />
+    <div className="w-full h-full bg-gray-200 animate-pulse" />
   )}
+
 </div>
 
 
@@ -815,68 +887,102 @@ const [expandedId, setExpandedId] = useState(null);
   )}
 </section>
 
-      {/* Amenities Section - Mobile Responsive */}
-      <div className="relative bg-gradient-to-br from-white via-gray-50 to-[#ecf5e9] py-10 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
-        {/* Background Glow Effects */}
-        <div className="absolute top-10 left-4 sm:left-10 w-48 sm:w-64 h-48 sm:h-64 bg-[#67a139]/20 blur-[60px] sm:blur-[100px] rounded-full opacity-40"></div>
-        <div className="absolute bottom-10 right-4 sm:right-10 w-52 sm:w-72 h-52 sm:h-72 bg-[#4a8f2f]/20 blur-[80px] sm:blur-[120px] rounded-full opacity-40"></div>
+     {/* Amenities Section - Mobile Responsive */}
+<div className="relative bg-gradient-to-br from-white via-gray-50 to-[#ecf5e9] py-10 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
+  {/* Background Glow Effects */}
+  <div className="absolute top-10 left-4 sm:left-10 w-48 sm:w-64 h-48 sm:h-64 bg-[#67a139]/20 blur-[60px] sm:blur-[100px] rounded-full opacity-40"></div>
+  <div className="absolute bottom-10 right-4 sm:right-10 w-52 sm:w-72 h-52 sm:h-72 bg-[#4a8f2f]/20 blur-[80px] sm:blur-[120px] rounded-full opacity-40"></div>
 
-        <div className="relative max-w-[1400px] mx-auto z-1 overflow-hidden">
-          {/* Header */}
-          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-8 px-2">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
-              <span className="block">WE'RE PROUD TO OFFER</span>
-              <span className="bg-gradient-to-r from-[#67a139] to-[#4a8f2f] bg-clip-text text-transparent text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-                BEST-IN-CLASS AMENITIES
-              </span>
-            </h2>
+  <div className="relative max-w-[1400px] mx-auto z-1 overflow-hidden">
+    {/* Header */}
+    <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-8 px-2">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+        <span className="block">WE'RE PROUD TO OFFER</span>
+        <span className="bg-gradient-to-r from-[#67a139] to-[#4a8f2f] bg-clip-text text-transparent text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+          BEST-IN-CLASS AMENITIES
+        </span>
+      </h2>
+      <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-md md:max-w-xl mx-auto mt-3 sm:mt-4">
+        Hand-picked premium lifestyle spaces crafted for elegance,
+        wellness, and luxury living.
+      </p>
+    </div>
 
-            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-md md:max-w-xl mx-auto mt-3 sm:mt-4">
-              Hand-picked premium lifestyle spaces crafted for elegance,
-              wellness, and luxury living.
-            </p>
-          </div>
-
-          {/* MARQUEE WRAPPER */}
-          <div className="relative w-full overflow-hidden pt-10">
-            <div className="flex gap-4 sm:gap-6 md:gap-8 animate-marquee hover:[animation-play-state:paused]">
-              {/* Duplicate list for seamless loop */}
-              {[...amenities, ...amenities].map((amenity, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]"
-                >
-                  <div className="cursor-pointer group relative flex flex-col items-center text-center hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-300">
-                    {/* Card */}
-                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl sm:rounded-3xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
-                      {/* Glow */}
-                      <div className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
-
-                      <Image
-                        src={getImageUrl(amenity.icon)}
-                        alt={amenity.label}
-                        width={70}
-                        height={70}
-                        className="object-contain relative z-10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-
-                    {/* Label */}
-                    <p className="mt-2  sm:mt-3 md:mt-4 text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide uppercase text-gray-800 group-hover:text-[#4a8f2f] transition px-1">
-                      {amenity.label}
-                    </p>
-                  </div>
+    {/* MARQUEE WRAPPER */}
+    {isMobile ? (
+      // ── MOBILE: auto-scroll + touch swipe ──
+      <div
+        ref={amenityScrollRef}
+        className="relative w-full pt-10 overflow-x-auto"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollBehavior: "auto",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
+        }}
+      >
+        <style>{`.amenity-scroll::-webkit-scrollbar { display: none; }`}</style>
+        <div
+          className="amenity-scroll flex gap-4"
+          style={{ width: "max-content", paddingBottom: "8px" }}
+        >
+          {[...amenities, ...amenities].map((amenity, i) => (
+            <div key={i} className="flex-shrink-0 w-[100px]">
+              <div className="cursor-pointer group relative flex flex-col items-center text-center">
+                <div className="relative w-16 h-16 rounded-2xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
+                  <Image
+                    src={getImageUrl(amenity.icon)}
+                    alt={amenity.label}
+                    width={70}
+                    height={70}
+                    className="object-contain relative z-10 w-10 h-10"
+                  />
                 </div>
-              ))}
+                <p className="mt-2 text-[10px] font-semibold tracking-wide uppercase text-gray-800 px-1">
+                  {amenity.label}
+                </p>
+              </div>
             </div>
-          </div>
-
-          {/* Button */}
-          <div className="text-center mt-8 sm:mt-10 md:mt-12 lg:mt-16">
-            <Link href="/amenities"></Link>
-          </div>
+          ))}
         </div>
       </div>
+    ) : (
+      // ── DESKTOP: original CSS marquee, untouched ──
+      <div className="relative w-full overflow-hidden pt-10">
+        <div className="flex gap-4 sm:gap-6 md:gap-8 animate-marquee hover:[animation-play-state:paused]">
+          {[...amenities, ...amenities].map((amenity, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]"
+            >
+              <div className="cursor-pointer group relative flex flex-col items-center text-center hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-300">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl sm:rounded-3xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
+                  <div className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
+                  <Image
+                    src={getImageUrl(amenity.icon)}
+                    alt={amenity.label}
+                    width={70}
+                    height={70}
+                    className="object-contain relative z-10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <p className="mt-2 sm:mt-3 md:mt-4 text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide uppercase text-gray-800 group-hover:text-[#4a8f2f] transition px-1">
+                  {amenity.label}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Button */}
+    <div className="text-center mt-8 sm:mt-10 md:mt-12 lg:mt-16">
+      <Link href="/amenities"></Link>
+    </div>
+  </div>
+</div>
 
       {/* Articles Section - Mobile Responsive */}
       <div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
