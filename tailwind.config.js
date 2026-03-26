@@ -14,6 +14,7 @@ module.exports = {
       lg: '1024px',
       xl: '1280px',
     },
+
     extend: {
       colors: {
         primary: {
@@ -41,23 +42,37 @@ module.exports = {
           900: '#1A1A1A',
         },
       },
+
       translate: {
         'z-[-500px]': '-500px',
         'z-[-200px]': '-200px',
         'z-0': '0',
       },
+
       scale: {
         '150': '1.5',
         '125': '1.25',
         '100': '1',
       },
+
+      /* ⭐ Existing Bounce Animation */
       animation: {
         bounce: 'bounce 2s infinite',
+
+        /* ⭐ NEW Marquee Animation */
+        marquee: 'marquee 35s linear infinite',
       },
+
       keyframes: {
         bounce: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+
+        /* ⭐ NEW Marquee Keyframes */
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
     },
@@ -65,5 +80,3 @@ module.exports = {
 
   plugins: [],
 };
-
-
