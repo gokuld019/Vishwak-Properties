@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Instagram, Facebook, Youtube, Linkedin, MapPin, Phone, Mail, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import ChatAssistant from "@/components/chatassistant";
-
+import { Send } from "lucide-react";
 const ongoingProjects = [["Aira Avenue-Vandalur", "/project-details/1"]];
 const completedProjects = [
   ["Akshaya Avenue", "Oragadam", "/project-details/23"],
@@ -59,7 +59,7 @@ export default function Footer() {
   return (
     <>
       <ChatAssistant />
-      <footer className="w-full bg-white text-[#111] relative overflow-hidden font-sans">
+      <footer className="w-full max-w-full bg-white text-[#111] relative overflow-hidden font-sans">
         {/* GRID TEXTURE */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.4]"
@@ -71,14 +71,14 @@ export default function Footer() {
         />
 
         {/* BODY */}
-        <div className="relative max-w-[1280px] mx-auto px-5 sm:px-8 lg:px-12 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="relative  max-w-full w-[87%]  mx-auto  pt-[51px] pb-[36px] px-[0px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1.1fr_1.7fr_2fr] gap-10">
             {/* LOGO */}
             <div className="flex flex-col gap-4">
               <Link href="/">
                 <img
                   src="/Logo.png"
-                  className="h-14 sm:h-16 object-contain"
+                  className="h-14 w-[33%] sm:h-auto object-contain"
                   alt="logo"
                 />
               </Link>
@@ -113,7 +113,7 @@ export default function Footer() {
             </div>
 
             {/* CONTACT */}
-            <div className="lg:col-span-2">
+            <div className="">
               <p className="footerTitle">Contact Us</p>
               <div className="flex flex-col gap-4 mt-5 text-[13px] text-gray-500">
                 <div className="flex gap-3">
@@ -132,6 +132,61 @@ export default function Footer() {
                 </a>
               </div>
             </div>
+<div>
+  <p className="footerTitle">Quick Contact!</p>
+
+  <div className="mt-5 flex flex-col gap-4">
+
+    {/* Input Box */}
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Enter your message..."
+        className="
+          w-full
+          rounded-full
+          border border-gray-300
+          px-5 py-3 pr-12
+          text-sm
+          outline-none
+          focus:border-[#67a139]
+          focus:ring-1 focus:ring-[#67a139]
+          transition
+        "
+      />
+
+      {/* Send Button */}
+      <button
+        className="
+          absolute right-2 top-1/2 -translate-y-1/2
+          bg-[#67a139]
+          hover:bg-[#5a8c34]
+          text-white
+          p-2 rounded-full
+          transition
+        "
+      >
+        <Send size={16} />
+      </button>
+    </div>
+
+    {/* Small Terms Text */}
+    <p className="text-[11px] text-gray-400 leading-relaxed">
+      By submitting, you agree to our{" "}
+      <span className="text-[#67a139] cursor-pointer hover:underline">
+        Terms & Conditions
+      </span>{" "}
+      and{" "}
+      <span className="text-[#67a139] cursor-pointer hover:underline">
+        Privacy Policy
+      </span>.
+    </p>
+
+  </div>
+</div>
+
+
+
           </div>
 
           {/* PROJECTS SECTION — full width below */}
@@ -162,8 +217,15 @@ export default function Footer() {
                 <span className="text-[11px] text-gray-400">{completedProjects.length} Projects</span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-6 gap-y-0">
-                {columns.map((col, colIdx) => (
+<div className="
+  grid
+  grid-cols-2        /* mobile */
+  sm:grid-cols-2     /* 640px+ */
+  md:grid-cols-3     /* 768px+ */
+  lg:grid-cols-4     /* 1024px+ */
+  xl:grid-cols-5     /* 1280px+ */
+  gap-x-6 gap-y-0
+">                {columns.map((col, colIdx) => (
                   <div key={colIdx} className="flex flex-col">
                     {/* Column divider line */}
                     <div className="h-[2px] w-8 bg-[#67a139] mb-3 rounded-full" />

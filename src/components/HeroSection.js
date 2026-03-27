@@ -51,8 +51,8 @@ export default function HeroSection() {
   const [isClient, setIsClient] = useState(false);
 
   const [recentProjects, setRecentProjects] = useState([]);
-const [phoneError, setPhoneError] = useState("");
-const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const [loading, setLoading] = useState(false);
   // ====== BANNERS (Web & Mobile) ======
   const [webBanners, setWebBanners] = useState([]);
   const [mobileBanners, setMobileBanners] = useState([]);
@@ -69,74 +69,78 @@ const [loading, setLoading] = useState(false);
   const [projectOptions, setProjectOptions] = useState([]);
   const [commercialBuy, setCommercialBuy] = useState(null);
   const [commercialLease, setCommercialLease] = useState(null);
-const [expandedId, setExpandedId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const sectionRef = useRef(null);
   const amenityScrollRef = useRef(null);
-const amenityAnimRef = useRef(null);
-const amenityIsDragging = useRef(false);
-const amenityStartX = useRef(0);
-const amenityScrollLeft = useRef(0);
+  const amenityAnimRef = useRef(null);
+  const amenityIsDragging = useRef(false);
+  const amenityStartX = useRef(0);
+  const amenityScrollLeft = useRef(0);
 
-useEffect(() => {
-  if (!isMobile) return;
-  const el = amenityScrollRef.current;
-  if (!el) return;
+  useEffect(() => {
+    if (!isMobile) return;
+    const el = amenityScrollRef.current;
+    if (!el) return;
 
-  let paused = false;
+    let paused = false;
 
-  // Auto scroll
-  const autoScroll = () => {
-    if (!paused && el) {
-      el.scrollLeft += 0.8;
-      // Reset to start for infinite loop
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft = 0;
+    // Auto scroll
+    const autoScroll = () => {
+      if (!paused && el) {
+        el.scrollLeft += 0.8;
+        // Reset to start for infinite loop
+        if (el.scrollLeft >= el.scrollWidth / 2) {
+          el.scrollLeft = 0;
+        }
       }
-    }
+      amenityAnimRef.current = requestAnimationFrame(autoScroll);
+    };
+
     amenityAnimRef.current = requestAnimationFrame(autoScroll);
-  };
 
-  amenityAnimRef.current = requestAnimationFrame(autoScroll);
+    // Touch handlers
+    const onTouchStart = (e) => {
+      paused = true;
+      amenityIsDragging.current = true;
+      amenityStartX.current = e.touches[0].pageX - el.offsetLeft;
+      amenityScrollLeft.current = el.scrollLeft;
+    };
 
-  // Touch handlers
-  const onTouchStart = (e) => {
-    paused = true;
-    amenityIsDragging.current = true;
-    amenityStartX.current = e.touches[0].pageX - el.offsetLeft;
-    amenityScrollLeft.current = el.scrollLeft;
-  };
+    const onTouchMove = (e) => {
+      if (!amenityIsDragging.current) return;
+      const x = e.touches[0].pageX - el.offsetLeft;
+      const walk = (amenityStartX.current - x) * 1.2;
+      el.scrollLeft = amenityScrollLeft.current + walk;
+    };
 
-  const onTouchMove = (e) => {
-    if (!amenityIsDragging.current) return;
-    const x = e.touches[0].pageX - el.offsetLeft;
-    const walk = (amenityStartX.current - x) * 1.2;
-    el.scrollLeft = amenityScrollLeft.current + walk;
-  };
+    const onTouchEnd = () => {
+      amenityIsDragging.current = false;
+      // Resume after 2s
+      setTimeout(() => {
+        paused = false;
+      }, 2000);
+    };
 
-  const onTouchEnd = () => {
-    amenityIsDragging.current = false;
-    // Resume after 2s
-    setTimeout(() => { paused = false; }, 2000);
-  };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    el.addEventListener("touchend", onTouchEnd);
 
-  el.addEventListener("touchstart", onTouchStart, { passive: true });
-  el.addEventListener("touchmove", onTouchMove, { passive: true });
-  el.addEventListener("touchend", onTouchEnd);
-
-  return () => {
-    cancelAnimationFrame(amenityAnimRef.current);
-    el.removeEventListener("touchstart", onTouchStart);
-    el.removeEventListener("touchmove", onTouchMove);
-    el.removeEventListener("touchend", onTouchEnd);
-  };
-}, [isMobile, amenities]);
+    return () => {
+      cancelAnimationFrame(amenityAnimRef.current);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [isMobile, amenities]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
+      ([entry]) => {
+        if (entry.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.15 },
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
@@ -151,7 +155,8 @@ useEffect(() => {
     return () => clearInterval(t);
   }, [recentProjects.length]);
 
-  const hasProjects = Array.isArray(recentProjects) && recentProjects.length > 0;
+  const hasProjects =
+    Array.isArray(recentProjects) && recentProjects.length > 0;
 
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
@@ -351,115 +356,115 @@ useEffect(() => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (loading) return; // ⭐ prevent double click
+    if (loading) return; // ⭐ prevent double click
 
-  const { name, email, phone, inquiry, projectId, message } = formData;
+    const { name, email, phone, inquiry, projectId, message } = formData;
 
-  if (!name || !phone || !inquiry) {
-    Swal.fire({
-      icon: "warning",
-      title: "Missing Details",
-      text: "Please fill required fields",
-      confirmButtonColor: "#67a139",
-    });
-    return;
-  }
-
-  const phoneRegex = /^[6-9]\d{9}$/;
-
-  if (!phoneRegex.test(phone)) {
-    Swal.fire({
-      icon: "error",
-      title: "Invalid Phone",
-      text: "Enter valid 10 digit mobile number",
-      confirmButtonColor: "#67a139",
-    });
-    return;
-  }
-
-  try {
-    setLoading(true); // ⭐ disable button
-
-    const res = await fetch(`${API_BASE}/contacts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        phone,
-        inquiry,
-        projectId,
-        message,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
+    if (!name || !phone || !inquiry) {
       Swal.fire({
-        icon: "success",
-        title: "Enquiry Sent",
-        text: "Our team will contact you shortly",
+        icon: "warning",
+        title: "Missing Details",
+        text: "Please fill required fields",
         confirmButtonColor: "#67a139",
       });
+      return;
+    }
 
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        inquiry: "",
-        projectId: "",
-        message: "",
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!phoneRegex.test(phone)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Phone",
+        text: "Enter valid 10 digit mobile number",
+        confirmButtonColor: "#67a139",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true); // ⭐ disable button
+
+      const res = await fetch(`${API_BASE}/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          inquiry,
+          projectId,
+          message,
+        }),
       });
 
-      setIsModalOpen(false);
-    } else {
-      throw new Error(data.message);
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Enquiry Sent",
+          text: "Our team will contact you shortly",
+          confirmButtonColor: "#67a139",
+        });
+
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          inquiry: "",
+          projectId: "",
+          message: "",
+        });
+
+        setIsModalOpen(false);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: err.message,
+      });
+    } finally {
+      setLoading(false); // ⭐ enable again
     }
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Failed",
-      text: err.message,
-    });
-  } finally {
-    setLoading(false); // ⭐ enable again
-  }
-};
+  };
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  // ⭐ PHONE VALIDATION LIVE
-  if (name === "phone") {
-    const onlyNums = value.replace(/\D/g, "");
+    // ⭐ PHONE VALIDATION LIVE
+    if (name === "phone") {
+      const onlyNums = value.replace(/\D/g, "");
 
-    if (onlyNums.length < 10) {
-      setPhoneError("Phone must be 10 digits");
-    } else if (!/^[6-9]/.test(onlyNums)) {
-      setPhoneError("Phone must start with 6,7,8 or 9");
-    } else {
-      setPhoneError("");
+      if (onlyNums.length < 10) {
+        setPhoneError("Phone must be 10 digits");
+      } else if (!/^[6-9]/.test(onlyNums)) {
+        setPhoneError("Phone must start with 6,7,8 or 9");
+      } else {
+        setPhoneError("");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        phone: onlyNums,
+      }));
+
+      return;
     }
 
     setFormData((prev) => ({
       ...prev,
-      phone: onlyNums,
+      [name]: value,
     }));
-
-    return;
-  }
-
-  setFormData((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
+  };
 
   const handlePrev = () => {
     if (!testimonials.length) return;
@@ -500,16 +505,15 @@ useEffect(() => {
     ? currentSlide % activeBanners.length
     : 0;
 
+  const scrollRef = useRef(null);
 
-const scrollRef = useRef(null)
+  const scrollLeft = () => {
+    scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
+  };
 
-const scrollLeft = () => {
-  scrollRef.current.scrollBy({ left: -300, behavior: "smooth" })
-}
-
-const scrollRight = () => {
-  scrollRef.current.scrollBy({ left: 300, behavior: "smooth" })
-}
+  const scrollRight = () => {
+    scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
+  };
 
   return (
     <>
@@ -560,7 +564,7 @@ const scrollRight = () => {
 
             {/* FORM */}
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8">
-              <div className="space-y-4 sm:space-y-5 md:space-y-6">   
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 {/* NAME */}
                 <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
                   <User className="w-5 h-5 text-gray-400" />
@@ -589,19 +593,18 @@ const scrollRight = () => {
                   />
                 </div>
 
-               <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
+                <div className="flex items-center gap-3 border-b-2 border-gray-300 focus-within:border-[#67a139] pb-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
 
-  <Phone className="w-5 h-5 text-gray-400" />
-
- <input
-  type="tel"
-  name="phone"
-  value={formData.phone}
-  onChange={handleChange}
-  maxLength={10}
-  placeholder="Phone Number"
-  required
-  className="
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    maxLength={10}
+                    placeholder="Phone Number"
+                    required
+                    className="
     w-full
     bg-transparent
     outline-none
@@ -612,8 +615,7 @@ const scrollRight = () => {
     text-gray-700
     placeholder:text-gray-400
   "
-/>
-
+                  />
                 </div>
 
                 {/* INQUIRY TYPE */}
@@ -671,17 +673,17 @@ const scrollRight = () => {
                 </div>
 
                 {/* SUBMIT */}
-               <button
-  type="submit"
-  disabled={loading || phoneError}
-  className={`w-full py-4 rounded-full font-semibold transition ${
-    loading || phoneError
-      ? "bg-gray-400 cursor-not-allowed"
-      : "bg-[#67a139] hover:bg-[#4a8f2f] text-white"
-  }`}
->
-  {loading ? "Sending..." : "Send Enquiry"}
-</button>
+                <button
+                  type="submit"
+                  disabled={loading || phoneError}
+                  className={`w-full py-4 rounded-full font-semibold transition ${
+                    loading || phoneError
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#67a139] hover:bg-[#4a8f2f] text-white"
+                  }`}
+                >
+                  {loading ? "Sending..." : "Send Enquiry"}
+                </button>
               </div>
             </form>
           </div>
@@ -689,28 +691,12 @@ const scrollRight = () => {
       )}
 
       {/* Hero Section - Mobile Responsive */}
-<div className="relative w-full h-[65vh] sm:h-[75vh] md:h-[90vh] lg:h-screen">      
-      
-      
-     <div className="relative w-full h-[65vh] sm:h-[75vh] md:h-[90vh] lg:h-screen">
 
-  {activeBanners.length > 0 ? (
-    <Image
-      priority
-      src={getImageUrl(activeBanners[safeSlideIndex].image)}
-      alt="Banner"
-      fill
-      className="object-cover transition-all duration-700"
-    />
-  ) : (
-    <div className="w-full h-full bg-gray-200 animate-pulse" />
-  )}
+      <section>
+        <div className="relative w-full h-auto sm:h-auto md:h-auto lg:h-auto">
 
-</div>
-
-
-
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white z-20 shadow-lg overflow-hidden transition-all duration-500">
+{/* scroll animation */}
+  <div className="  top-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white z-20 shadow-lg overflow-hidden transition-all duration-500">
           <div
             className={`transition-all duration-500 ${isScrolled ? "h-0 opacity-0" : "h-8 sm:h-[36px] md:h-[44px] opacity-100"}`}
           >
@@ -801,7 +787,32 @@ const scrollRight = () => {
             </div>
           </div>
         </div>
+
+
+      {/* banner div */}
+<div className="w-full">
+  {activeBanners.length > 0 ? (
+    <Image
+      priority
+      src={getImageUrl(activeBanners[safeSlideIndex]?.image)}
+      alt="Banner"
+      width={1920}
+      height={1080}
+      className="w-full h-auto object-contain transition-all duration-700"
+    />
+  ) : (
+    <div className="w-full h-[300px] bg-gray-200 animate-pulse" />
+  )}
+</div>
+
+
+
+      
+
       </div>
+      </section>
+
+
 
       {/* About Us Section - Mobile Responsive */}
       <section className="relative w-full min-h-[500px] sm:h-[750px] md:h-[780px] lg:h-[800px] xl:h-[820px] overflow-hidden bg-[#e8e8d0]">
@@ -870,132 +881,132 @@ const scrollRight = () => {
         </div>
       </section>
 
-{/* Recently Updated - Responsive Banner */}
-<section className="w-full">
-  {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
-    <Link
-      href={`/project-details/${recentProjects[0].projectId}`}
-      className="block w-full"
-    >
-      {/* Desktop Banner */}
-      <div
-        className="hidden md:block w-full 
+      {/* Recently Updated - Responsive Banner */}
+      <section className="w-full">
+        {Array.isArray(recentProjects) && recentProjects.length > 0 ? (
+          <Link
+            href={`/project-details/${recentProjects[0].projectId}`}
+            className="block w-full"
+          >
+            {/* Desktop Banner */}
+            <div
+              className="hidden md:block w-full 
                    aspect-[1920/807] 
                    bg-cover bg-center cursor-pointer"
-        style={{ backgroundImage: "url('/updatebanner.png')" }}
-      />
+              style={{ backgroundImage: "url('/updatebanner.png')" }}
+            />
 
-      {/* Mobile Banner */}
-      <div
-        className="block md:hidden w-full 
+            {/* Mobile Banner */}
+            <div
+              className="block md:hidden w-full 
                    aspect-[9/16] 
                    bg-cover bg-center cursor-pointer"
-        style={{ backgroundImage: "url('/mobile.png')" }}
-      />
-    </Link>
-  ) : (
-    <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 text-gray-500">
-      No recent projects available.
-    </div>
-  )}
-</section>
+              style={{ backgroundImage: "url('/mobile.png')" }}
+            />
+          </Link>
+        ) : (
+          <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 text-gray-500">
+            No recent projects available.
+          </div>
+        )}
+      </section>
 
-     {/* Amenities Section - Mobile Responsive */}
-<div className="relative bg-gradient-to-br from-white via-gray-50 to-[#ecf5e9] py-10 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
-  {/* Background Glow Effects */}
-  <div className="absolute top-10 left-4 sm:left-10 w-48 sm:w-64 h-48 sm:h-64 bg-[#67a139]/20 blur-[60px] sm:blur-[100px] rounded-full opacity-40"></div>
-  <div className="absolute bottom-10 right-4 sm:right-10 w-52 sm:w-72 h-52 sm:h-72 bg-[#4a8f2f]/20 blur-[80px] sm:blur-[120px] rounded-full opacity-40"></div>
+      {/* Amenities Section - Mobile Responsive */}
+      <div className="relative bg-gradient-to-br from-white via-gray-50 to-[#ecf5e9] py-10 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
+        {/* Background Glow Effects */}
+        <div className="absolute top-10 left-4 sm:left-10 w-48 sm:w-64 h-48 sm:h-64 bg-[#67a139]/20 blur-[60px] sm:blur-[100px] rounded-full opacity-40"></div>
+        <div className="absolute bottom-10 right-4 sm:right-10 w-52 sm:w-72 h-52 sm:h-72 bg-[#4a8f2f]/20 blur-[80px] sm:blur-[120px] rounded-full opacity-40"></div>
 
-  <div className="relative max-w-[1400px] mx-auto z-1 overflow-hidden">
-    {/* Header */}
-    <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-8 px-2">
-      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
-        <span className="block">WE'RE PROUD TO OFFER</span>
-        <span className="bg-gradient-to-r from-[#67a139] to-[#4a8f2f] bg-clip-text text-transparent text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
-          BEST-IN-CLASS AMENITIES
-        </span>
-      </h2>
-      <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-md md:max-w-xl mx-auto mt-3 sm:mt-4">
-        Hand-picked premium lifestyle spaces crafted for elegance,
-        wellness, and luxury living.
-      </p>
-    </div>
+        <div className="relative max-w-[1400px] mx-auto z-1 overflow-hidden">
+          {/* Header */}
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-8 px-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <span className="block">WE'RE PROUD TO OFFER</span>
+              <span className="bg-gradient-to-r from-[#67a139] to-[#4a8f2f] bg-clip-text text-transparent text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+                BEST-IN-CLASS AMENITIES
+              </span>
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-md md:max-w-xl mx-auto mt-3 sm:mt-4">
+              Hand-picked premium lifestyle spaces crafted for elegance,
+              wellness, and luxury living.
+            </p>
+          </div>
 
-    {/* MARQUEE WRAPPER */}
-    {isMobile ? (
-      // ── MOBILE: auto-scroll + touch swipe ──
-      <div
-        ref={amenityScrollRef}
-        className="relative w-full pt-10 overflow-x-auto"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          scrollBehavior: "auto",
-          msOverflowStyle: "none",
-          scrollbarWidth: "none",
-        }}
-      >
-        <style>{`.amenity-scroll::-webkit-scrollbar { display: none; }`}</style>
-        <div
-          className="amenity-scroll flex gap-4"
-          style={{ width: "max-content", paddingBottom: "8px" }}
-        >
-          {[...amenities, ...amenities].map((amenity, i) => (
-            <div key={i} className="flex-shrink-0 w-[100px]">
-              <div className="cursor-pointer group relative flex flex-col items-center text-center">
-                <div className="relative w-16 h-16 rounded-2xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
-                  <Image
-                    src={getImageUrl(amenity.icon)}
-                    alt={amenity.label}
-                    width={70}
-                    height={70}
-                    className="object-contain relative z-10 w-10 h-10"
-                  />
-                </div>
-                <p className="mt-2 text-[10px] font-semibold tracking-wide uppercase text-gray-800 px-1">
-                  {amenity.label}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ) : (
-      // ── DESKTOP: original CSS marquee, untouched ──
-      <div className="relative w-full overflow-hidden pt-10">
-        <div className="flex gap-4 sm:gap-6 md:gap-8 animate-marquee hover:[animation-play-state:paused]">
-          {[...amenities, ...amenities].map((amenity, i) => (
+          {/* MARQUEE WRAPPER */}
+          {isMobile ? (
+            // ── MOBILE: auto-scroll + touch swipe ──
             <div
-              key={i}
-              className="flex-shrink-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]"
+              ref={amenityScrollRef}
+              className="relative w-full pt-10 overflow-x-auto"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                scrollBehavior: "auto",
+                msOverflowStyle: "none",
+                scrollbarWidth: "none",
+              }}
             >
-              <div className="cursor-pointer group relative flex flex-col items-center text-center hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-300">
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl sm:rounded-3xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
-                  <div className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
-                  <Image
-                    src={getImageUrl(amenity.icon)}
-                    alt={amenity.label}
-                    width={70}
-                    height={70}
-                    className="object-contain relative z-10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <p className="mt-2 sm:mt-3 md:mt-4 text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide uppercase text-gray-800 group-hover:text-[#4a8f2f] transition px-1">
-                  {amenity.label}
-                </p>
+              <style>{`.amenity-scroll::-webkit-scrollbar { display: none; }`}</style>
+              <div
+                className="amenity-scroll flex gap-4"
+                style={{ width: "max-content", paddingBottom: "8px" }}
+              >
+                {[...amenities, ...amenities].map((amenity, i) => (
+                  <div key={i} className="flex-shrink-0 w-[100px]">
+                    <div className="cursor-pointer group relative flex flex-col items-center text-center">
+                      <div className="relative w-16 h-16 rounded-2xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
+                        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
+                        <Image
+                          src={getImageUrl(amenity.icon)}
+                          alt={amenity.label}
+                          width={70}
+                          height={70}
+                          className="object-contain relative z-10 w-10 h-10"
+                        />
+                      </div>
+                      <p className="mt-2 text-[10px] font-semibold tracking-wide uppercase text-gray-800 px-1">
+                        {amenity.label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          ) : (
+            // ── DESKTOP: original CSS marquee, untouched ──
+            <div className="relative w-full overflow-hidden pt-10">
+              <div className="flex gap-4 sm:gap-6 md:gap-8 animate-marquee hover:[animation-play-state:paused]">
+                {[...amenities, ...amenities].map((amenity, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]"
+                  >
+                    <div className="cursor-pointer group relative flex flex-col items-center text-center hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-300">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl sm:rounded-3xl bg-white/60 backdrop-blur-xl shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-white/50 flex items-center justify-center transition-all duration-300 group-hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] group-hover:scale-105">
+                        <div className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-br from-[#67a139]/20 to-[#4a8f2f]/20 blur-xl" />
+                        <Image
+                          src={getImageUrl(amenity.icon)}
+                          alt={amenity.label}
+                          width={70}
+                          height={70}
+                          className="object-contain relative z-10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <p className="mt-2 sm:mt-3 md:mt-4 text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide uppercase text-gray-800 group-hover:text-[#4a8f2f] transition px-1">
+                        {amenity.label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Button */}
+          <div className="text-center mt-8 sm:mt-10 md:mt-12 lg:mt-16">
+            <Link href="/amenities"></Link>
+          </div>
         </div>
       </div>
-    )}
-
-    {/* Button */}
-    <div className="text-center mt-8 sm:mt-10 md:mt-12 lg:mt-16">
-      <Link href="/amenities"></Link>
-    </div>
-  </div>
-</div>
 
       {/* Articles Section - Mobile Responsive */}
       <div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
@@ -1006,13 +1017,11 @@ const scrollRight = () => {
                 <span className="text-xs sm:text-sm font-medium text-[#67a139]">
                   ARTICLES
                 </span>
-               
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Discover inspiration and trends
               </h2>
             </div>
-            
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
             {articles.map((article, index) => (
@@ -1116,140 +1125,138 @@ const scrollRight = () => {
         </div>
       </div>
 
-     {/* Testimonials Section */}
-<div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Testimonials Section */}
+      <div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Heading */}
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-5">
+            <p className="text-xs sm:text-sm font-semibold text-[#67a139] uppercase tracking-wider mb-3 sm:mb-4">
+              TESTIMONIALS
+            </p>
 
-    {/* Heading */}
-    <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-5">
-      <p className="text-xs sm:text-sm font-semibold text-[#67a139] uppercase tracking-wider mb-3 sm:mb-4">
-        TESTIMONIALS
-      </p>
-
-      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-        Stories That <br />
-        Inspire <span className="text-[#67a139]">Confidence</span> !!
-      </h2>
-    </div>
-
-    {/* Carousel */}
-    <div className="relative h-[260px] sm:h-[320px] md:h-[380px] lg:h-[440px] xl:h-[480px] mb-10 max-w-4xl mx-auto">
-      <div className="relative w-full h-full flex items-center justify-center">
-
-        {testimonials.map((testimonial, index) => {
-          const position = getCardPosition(index);
-
-          const distance =
-            isMobile ? 100 : window.innerWidth <= 1024 ? 180 : 260;
-
-          if (position === "hidden") return null;
-
-          const id = testimonial.id || index;
-
-          return (
-            <div
-              key={id}
-              className={`absolute transition-all duration-500 ease-in-out ${
-                position === "center"
-                  ? "z-30 opacity-100 scale-100"
-                  : "z-10 opacity-40 blur-[2px] scale-90"
-              }`}
-              style={{
-                top: "50%",
-                left: "50%",
-                transform:
-                  position === "center"
-                    ? "translate(-50%, -50%)"
-                    : position === "left"
-                    ? `translate(calc(-50% - ${distance}px), -50%)`
-                    : `translate(calc(-50% + ${distance}px), -50%)`,
-              }}
-            >
-              {/* CARD */}
-              <div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[420px] xl:w-[480px] min-h-[240px] flex flex-col justify-between">
-
-                {/* Rating */}
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <svg
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < (testimonial.rating || 0)
-                          ? "fill-yellow-400"
-                          : "fill-gray-300"
-                      }`}
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
-                </div>
-
-                {/* Text with Fade + Clamp */}
-                <div className="relative text-center px-2">
-                  <p
-                    className={`text-gray-700 text-sm md:text-base leading-relaxed transition-all duration-300 ${
-                      expandedId === id ? "" : "line-clamp-8"
-                    }`}
-                  >
-                    {testimonial.text}
-                  </p>
-
-                  {/* Gradient Fade */}
-                  {expandedId !== id && (
-                    <div className="absolute bottom-0 left-0 w-full h-10 bg-gradient-to-t from-white to-transparent"></div>
-                  )}
-                </div>
-
-                {/* Read More */}
-                {testimonial.text?.length > 120 && (
-                  <button
-                    onClick={() =>
-                      setExpandedId(expandedId === id ? null : id)
-                    }
-                    className="text-[#67a139] text-xs font-semibold mt-2 hover:underline"
-                  >
-                    {expandedId === id ? "Read Less" : "Read More"}
-                  </button>
-                )}
-
-                {/* Author */}
-                <p className="text-gray-900 font-bold text-center mt-3 text-base">
-                  {testimonial.author}
-                </p>
-
-              </div>
-            </div>
-          );
-        })}
-
-        {testimonials.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            No testimonials yet.
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
+              Stories That <br />
+              Inspire <span className="text-[#67a139]">Confidence</span> !!
+            </h2>
           </div>
-        )}
+
+          {/* Carousel */}
+          <div className="relative h-[288px] sm:h-[320px] md:h-[380px] lg:h-[440px] xl:h-[480px] mb-10 max-w-4xl mx-auto">
+            <div className="relative w-full h-full flex items-center justify-center">
+              {testimonials.map((testimonial, index) => {
+                const position = getCardPosition(index);
+
+                const distance = isMobile
+                  ? 100
+                  : window.innerWidth <= 1024
+                    ? 180
+                    : 260;
+
+                if (position === "hidden") return null;
+
+                const id = testimonial.id || index;
+
+                return (
+                  <div
+                    key={id}
+                    className={`absolute transition-all duration-500 ease-in-out ${
+                      position === "center"
+                        ? "z-30 opacity-100 scale-100"
+                        : "z-10 opacity-40 blur-[2px] scale-90"
+                    }`}
+                    style={{
+                      top: "50%",
+                      left: "50%",
+                      transform:
+                        position === "center"
+                          ? "translate(-50%, -50%)"
+                          : position === "left"
+                            ? `translate(calc(-50% - ${distance}px), -50%)`
+                            : `translate(calc(-50% + ${distance}px), -50%)`,
+                    }}
+                  >
+                    {/* CARD */}
+                    <div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[420px] xl:w-[480px] min-h-[240px] flex flex-col justify-between">
+                      {/* Rating */}
+                      <div className="flex justify-center gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < (testimonial.rating || 0)
+                                ? "fill-yellow-400"
+                                : "fill-gray-300"
+                            }`}
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                          </svg>
+                        ))}
+                      </div>
+
+                      {/* Text with Fade + Clamp */}
+                      <div className="relative text-center px-2">
+                        <p
+                          className={`text-gray-700 text-sm md:text-base leading-relaxed transition-all duration-300 ${
+                            expandedId === id ? "" : "line-clamp-8"
+                          }`}
+                        >
+                          {testimonial.text}
+                        </p>
+
+                        {/* Gradient Fade */}
+                        {expandedId !== id && (
+                          <div className="absolute bottom-0 left-0 w-full h-10 bg-gradient-to-t from-white to-transparent"></div>
+                        )}
+                      </div>
+
+                      {/* Read More */}
+                      {testimonial.text?.length > 120 && (
+                        <button
+                          onClick={() =>
+                            setExpandedId(expandedId === id ? null : id)
+                          }
+                          className="text-[#67a139] text-xs font-semibold mt-2 hover:underline"
+                        >
+                          {expandedId === id ? "Read Less" : "Read More"}
+                        </button>
+                      )}
+
+                      {/* Author */}
+                      <p className="text-gray-900 font-bold text-center mt-3 text-base">
+                        {testimonial.author}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {testimonials.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                  No testimonials yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Arrows */}
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={handlePrev}
+              className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
+            >
+              <ChevronLeft className="mx-auto" />
+            </button>
+
+            <button
+              onClick={handleNext}
+              className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
+            >
+              <ChevronRight className="mx-auto" />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-
-    {/* Arrows */}
-    <div className="flex justify-center gap-4">
-      <button
-        onClick={handlePrev}
-        className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
-      >
-        <ChevronLeft className="mx-auto" />
-      </button>
-
-      <button
-        onClick={handleNext}
-        className="w-10 h-10 rounded-full bg-white border shadow hover:scale-110 transition"
-      >
-        <ChevronRight className="mx-auto" />
-      </button>
-    </div>
-
-  </div>
-</div>
 
       {/* DOUBLE LINE OUTLINED MARQUEE - Mobile Responsive */}
       <div className="relative w-full overflow-hidden bg-white py-4 sm:py-6 md:py-8 lg:py-10">
@@ -1383,29 +1390,27 @@ const scrollRight = () => {
               </div>
 
               {/* Phone */}
-             <div className="relative">
-  <input
-    type="tel"
-    name="phone"
-    value={formData.phone}
-    onChange={handleChange}
-    maxLength={10}
-    className={`peer w-full border rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-gray-900 placeholder-transparent outline-none
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  maxLength={10}
+                  className={`peer w-full border rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-gray-900 placeholder-transparent outline-none
     ${phoneError ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-gray-900"}`}
-    placeholder="Phone Number"
-    required
-  />
+                  placeholder="Phone Number"
+                  required
+                />
 
-  <label className="absolute left-3 sm:left-4 -top-2 bg-white px-1 text-xs sm:text-sm text-gray-600 peer-placeholder-shown:top-2.5 sm:peer-placeholder-shown:top-3 transition-all peer-focus:-top-2">
-    Phone Number *
-  </label>
+                <label className="absolute left-3 sm:left-4 -top-2 bg-white px-1 text-xs sm:text-sm text-gray-600 peer-placeholder-shown:top-2.5 sm:peer-placeholder-shown:top-3 transition-all peer-focus:-top-2">
+                  Phone Number *
+                </label>
 
-  {phoneError && (
-    <p className="text-red-500 text-xs mt-1">
-      {phoneError}
-    </p>
-  )}
-</div>
+                {phoneError && (
+                  <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+                )}
+              </div>
 
               {/* Inquiry Type */}
               <div className="relative">

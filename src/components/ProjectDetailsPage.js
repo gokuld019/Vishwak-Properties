@@ -117,6 +117,8 @@ const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
   const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
 
+
+
   const [paymentEnquiry, setPaymentEnquiry] = useState({
     fullName: "",
     email: "",

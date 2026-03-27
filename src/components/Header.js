@@ -21,6 +21,8 @@ const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 export default function Header() {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+ const isProjectDetails = pathname.startsWith("/project-details/");
+
 
   if (pathname.startsWith("/admin")) return null;
 
@@ -57,16 +59,16 @@ export default function Header() {
   };
 
   const plots = ongoingProjects.filter((p) =>
-    normalize(p.category).includes("plot")
+    normalize(p.category).includes("plot"),
   );
   const villas = ongoingProjects.filter((p) =>
-    normalize(p.category).includes("villa")
+    normalize(p.category).includes("villa"),
   );
   const completedPlots = completedProjects.filter((p) =>
-    normalize(p.category).includes("plot")
+    normalize(p.category).includes("plot"),
   );
   const completedVillas = completedProjects.filter((p) =>
-    normalize(p.category).includes("villa")
+    normalize(p.category).includes("villa"),
   );
 
   useEffect(() => {
@@ -76,12 +78,12 @@ export default function Header() {
   }, []);
 
   const showInfoBar = isScrolled || !isHomePage;
-  const headerHeight = isScrolled ? 118 : 180;
+  const headerHeight = isScrolled ? "auto" : 180;
 
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--header-height",
-      `${headerHeight}px`
+      `${headerHeight}px`,
     );
   }, [headerHeight]);
 
@@ -102,22 +104,19 @@ export default function Header() {
           : "bg-transparent"
       }`}
       style={{
-        height: `${headerHeight}px`,
+        height: `${headerHeight}`,
+        paddingBottom:"6px",
         transition: "height 0.3s ease, background 0.3s ease",
       }}
     >
       {/* ✅ FIX: Always rendered, transitions in/out smoothly — no pop-in */}
-      <div
-        className="bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white px-4 overflow-hidden"
-        style={{
-          maxHeight: showInfoBar ? "50px" : "0px",
-          opacity: showInfoBar ? 1 : 0,
-          paddingTop: showInfoBar ? "10px" : "0px",
-          paddingBottom: showInfoBar ? "10px" : "0px",
-          transition:
-            "max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease",
-        }}
-      >
+   <div
+  className="bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white px-4 py-2 overflow-hidden transition-all duration-500 ease-in-out"
+  style={{
+    transform: showInfoBar ? "translateY(0)" : "translateY(-100%)",
+    opacity: showInfoBar ? 1 : 0,
+  }}
+>
         <div className="flex justify-between items-center text-[10px] sm:text-[12px] md:text-[13px] font-medium">
           <span className="flex items-center gap-1 sm:gap-2">
             <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -130,15 +129,25 @@ export default function Header() {
         </div>
       </div>
 
-      <nav>
-        {/* ✅ FIX: inline paddingTop transitions instead of Tailwind class swap */}
-        <div
-          className="w-[92%] lg:max-w-[80%] mx-auto flex items-center justify-between px-3"
-          style={{
-            paddingTop: isScrolled ? "4px" : "60px",
-            transition: "padding-top 0.3s ease",
-          }}
-        >
+<nav class="w-[95%] min-[1200px]:w-[88%] mx-auto">        {/* ✅ FIX: inline paddingTop transitions instead of Tailwind class swap */}
+      <div
+  className="
+    w-full
+    max-w-[100%]
+    md:max-w-full
+    min-[1100px]:max-w-[82%]
+    mx-auto
+    flex items-center justify-between px-3
+  "
+  style={{
+    paddingTop: isHomePage
+      ? "20px"
+      : isScrolled
+      ? "4px"
+      : "50px",
+    transition: "padding-top 0.3s ease",
+  }}
+>
           <Link href="/" className="mt-1">
             <Image
               src="/Logo.png"
@@ -422,7 +431,7 @@ export default function Header() {
                                     <MapPin className="w-4 h-4 text-blue-600" />
                                     {p.name}
                                   </Link>
-                                )
+                                ),
                               )}
                             </motion.div>
                           )}

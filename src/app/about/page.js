@@ -11,15 +11,14 @@ export default function AboutPage() {
       {/* ── HERO ── */}
      <section
   className="relative flex flex-col justify-end overflow-hidden bg-[#eef5ee]
-  min-h-screen
-  px-6 sm:px-10 tab:px-16 lg:px-[7vw]
-  pb-12 sm:pb-[8vh]"
+  min-h-auto p-0
+    "
 >
 
   <motion.img
   src="/1.jpeg"
   alt="Vishwak Properties"
-  className="absolute inset-0 w-full h-full hidden sm:block
+  className="p-0 h-auto min-h-0 inset-0 w-full h-full hidden sm:block
   object-cover object-center"
   style={{ filter: "saturate(0.75) brightness(0.95)" }}
   initial={{ scale: 1.08 }}
@@ -30,7 +29,7 @@ export default function AboutPage() {
 <motion.img
   src="/upmob.jpeg"
   alt="Vishwak Properties"
-  className="absolute inset-0 w-full h-full block sm:hidden
+  className=" inset-0 w-full h-full block sm:hidden
   object-contain object-center"
   style={{
     filter: "saturate(0.85) brightness(0.95)",
