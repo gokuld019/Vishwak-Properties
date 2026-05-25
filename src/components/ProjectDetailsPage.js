@@ -1167,17 +1167,27 @@ sphereRef.current = sphere;
     setSelectedFloorPlan(null);
   };
 
-  const openCinematic360 = () => {
+ const openCinematic360 = () => {
   if (!media.cinematic360) {
     alert("Cinematic 360° not available");
     return;
   }
 
-  let finalUrl = media.cinematic360;
+  let raw = media.cinematic360;
+  let finalUrl;
 
-  // If backend sends only path like /uploads/xxx.jpg
-  if (!finalUrl.startsWith("http")) {
-    finalUrl = `${Imagebase}${finalUrl}`;
+  // If backend returned an absolute URL (possibly with a wrong host like
+  // localhost:5000), extract just the path and rebuild it with Imagebase.
+  if (raw.startsWith("http")) {
+    try {
+      const path = new URL(raw).pathname; // e.g. /uploads/projects/1772458844318.jpeg
+      finalUrl = `${Imagebase}${path}`;
+    } catch {
+      finalUrl = raw;
+    }
+  } else {
+    // Relative path like /uploads/xxx.jpg
+    finalUrl = `${Imagebase}${raw.startsWith("/") ? raw : `/${raw}`}`;
   }
 
   console.log("360 FINAL URL:", finalUrl);
