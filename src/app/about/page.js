@@ -77,14 +77,11 @@ export default function AboutPage() {
             Our Story
           </span>
 
-          <h2
-            className="font-semibold text-[#1c2b1d] leading-[1.2] mb-6"
-            style={{ fontSize: 'clamp(1.8rem, 3.5vw, 3rem)' }}
-          >
+          <h2 className="font-semibold text-[#1c2b1d] leading-[1.2] mb-6"style={{ fontSize: 'clamp(1.8rem, 3.5vw, 3rem)' }}>
             Who <span className="text-[#3b7b3f]">We Are</span>
           </h2>
 
-          <p className="text-sm tab:text-base leading-[1.85] text-[#4a5e4b] font-light mb-4">
+          <p className="text-sm tab:text-base leading-[1.85] text-[#4a5e4b] font-light mb-4" >
             Vishwak Properties is a dedicated and innovative real estate plot developer in Chennai,
             committed to creating life spaces with passion and precision. Since 2012, the company
             has built a strong reputation for quality, affordability, and forward-thinking development.
@@ -114,6 +111,9 @@ export default function AboutPage() {
             'Innovative living experiences',
           ].map((text, i) => (
             <div
+
+
+            
               key={text}
               className={`flex items-center gap-3.5 py-3.5 border-b border-[#f5edbb] text-[.9rem] tab:text-[.95rem] text-[#4a5e4b] font-light ${
                 i === 0 ? 'border-t border-[#f5edbb]' : ''

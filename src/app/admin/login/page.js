@@ -134,12 +134,7 @@ export default function LoginPage() {
           </form>
 
           {/* DEMO CREDENTIALS */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-400 text-center">
-              Demo: <span className="font-medium text-gray-600">admin@gmail.com</span> /{' '}
-              <span className="font-medium text-gray-600">Admin@123</span>
-            </p>
-          </div>
+        
         </div>
       </div>
     </div>
