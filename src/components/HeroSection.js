@@ -1008,122 +1008,89 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Articles Section - Mobile Responsive */}
-      <div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
-        <div className="max-w-[1350px] mx-auto">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
-            <div>
-              <div className="inline-flex items-center gap-2 border-2 border-gray-300 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4">
-                <span className="text-xs sm:text-sm font-medium text-[#67a139]">
-                  ARTICLES
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                Discover inspiration and trends
-              </h2>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
-            {articles.map((article, index) => (
-              <article
-                key={article.id || index}
-                className="group cursor-pointer"
-              >
-                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden mb-3 sm:mb-4 h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72">
-                  <img
-                    src={getImageUrl(article.image)}
-                    alt={article.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                  {article.isMap && (
-                    <div className="absolute inset-0 bg-cyan-400/90 flex items-center justify-center">
-                      <div className="relative w-full h-full p-4 sm:p-5 md:p-6 lg:p-8">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
-                            <svg
-                              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="absolute top-3 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                          Sriperumbudur
-                        </div>
-                        <div className="absolute top-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                          Tambaram
-                        </div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-4 sm:translate-y-6 md:translate-y-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                          Padappai
-                        </div>
-                        <div className="absolute bottom-1/4 left-2 sm:left-3 md:left-4 lg:left-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                          Oragadam
-                        </div>
-                        <div className="absolute bottom-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                          Kilambakkam
-                        </div>
-                        <svg
-                          className="absolute inset-0 w-full h-full opacity-20"
-                          viewBox="0 0 100 100"
-                        >
-                          <line
-                            x1="0"
-                            y1="33"
-                            x2="100"
-                            y2="33"
-                            stroke="white"
-                            strokeWidth="0.5"
-                          />
-                          <line
-                            x1="0"
-                            y1="66"
-                            x2="100"
-                            y2="66"
-                            stroke="white"
-                            strokeWidth="0.5"
-                          />
-                          <line
-                            x1="33"
-                            y1="0"
-                            x2="33"
-                            y2="100"
-                            stroke="white"
-                            strokeWidth="0.5"
-                          />
-                          <line
-                            x1="66"
-                            y1="0"
-                            x2="66"
-                            y2="100"
-                            stroke="white"
-                            strokeWidth="0.5"
-                          />
+{/* Articles Section - Mobile Responsive */}
+<div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
+  <div className="max-w-[1350px] mx-auto">
+    <div className="flex flex-col md:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
+      <div>
+        <div className="inline-flex items-center gap-2 border-2 border-gray-300 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4">
+          <span className="text-xs sm:text-sm font-medium text-[#67a139]">
+            ARTICLES
+          </span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+          Discover inspiration and trends
+        </h2>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
+      {articles.map((article, index) => (
+        <Link
+          key={article.id || index}
+          href={`/article/${article.id}`}
+        >
+          <article className="group cursor-pointer">
+            <div className="relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden mb-3 sm:mb-4 h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72">
+              <img
+                src={getImageUrl(article.image)}
+                alt={article.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              {article.isMap && (
+                <div className="absolute inset-0 bg-cyan-400/90 flex items-center justify-center">
+                  <div className="relative w-full h-full p-4 sm:p-5 md:p-6 lg:p-8">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
                         </svg>
                       </div>
                     </div>
-                  )}
+                    <div className="absolute top-3 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                      Sriperumbudur
+                    </div>
+                    <div className="absolute top-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                      Tambaram
+                    </div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-4 sm:translate-y-6 md:translate-y-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                      Padappai
+                    </div>
+                    <div className="absolute bottom-1/4 left-2 sm:left-3 md:left-4 lg:left-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                      Oragadam
+                    </div>
+                    <div className="absolute bottom-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                      Kilambakkam
+                    </div>
+                    <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 100">
+                      <line x1="0" y1="33" x2="100" y2="33" stroke="white" strokeWidth="0.5" />
+                      <line x1="0" y1="66" x2="100" y2="66" stroke="white" strokeWidth="0.5" />
+                      <line x1="33" y1="0" x2="33" y2="100" stroke="white" strokeWidth="0.5" />
+                      <line x1="66" y1="0" x2="66" y2="100" stroke="white" strokeWidth="0.5" />
+                    </svg>
+                  </div>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 md:mb-3">
-                  {article.date
-                    ? new Date(article.date).toLocaleDateString("en-IN")
-                    : ""}
-                </p>
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
-                  {article.title}
-                </h3>
-              </article>
-            ))}
-            {articles.length === 0 && (
-              <div className="col-span-full text-center text-gray-500 py-8 sm:py-12">
-                No articles available.
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 md:mb-3">
+              {article.date
+                ? new Date(article.date).toLocaleDateString("en-IN")
+                : ""}
+            </p>
+            <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
+              {article.title}
+            </h3>
+          </article>
+        </Link>
+      ))}
+      {articles.length === 0 && (
+        <div className="col-span-full text-center text-gray-500 py-8 sm:py-12">
+          No articles available.
         </div>
-      </div>
+      )}
+    </div>
+  </div>
+</div>
 
       {/* Testimonials Section */}
       <div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
