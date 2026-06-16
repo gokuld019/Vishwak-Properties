@@ -79,6 +79,26 @@ export default function ArticleDetailPage() {
     return `${Math.max(1, Math.ceil(words / 200))} min read`;
   };
 
+  // ── Banner config — desktop + mobile per article ID ──
+  const bannerConfig = {
+    "11": {
+      desktop: "/upblog1.jpeg",
+      mobile: "/mobban1.jpeg",
+    },
+    "7": {
+      desktop: "/upblog3.jpeg",
+      mobile: "/mobban2.jpeg",
+    },
+    "10": {
+      desktop: "/upblog2.jpeg",
+      mobile: "/mobban3.jpeg",
+    },
+  };
+
+  const currentBanner = bannerConfig[String(id)];
+  const desktopSrc = currentBanner?.desktop || getImageUrl(article?.image || article?.banner);
+  const mobileSrc = currentBanner?.mobile || desktopSrc;
+
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -110,22 +130,12 @@ export default function ArticleDetailPage() {
     );
   }
 
-  const bannerOverrides = {
-    "11": "/blogbanner-1.png",
-    "7": "/blogbanner-2.png",
-    "10" : "/blogbanner-3.png",
-  };
-  const bannerSrc = bannerOverrides[String(id)] || getImageUrl(article.image || article.banner);
-
   return (
     <>
       <style>{`
-        /* ── Google Fonts — Playfair Display for display, Inter for body ── */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; }
-
-        
 
         /* ── Top nav bar ── */
         .vp-topbar {
@@ -162,7 +172,7 @@ export default function ArticleDetailPage() {
         }
         .vp-share-btn:hover { opacity: 0.85; }
 
-        /* ── Hero image — full bleed, no text overlay ── */
+        /* ── Hero image ── */
         .vp-hero-img {
           width: 100%;
           aspect-ratio: 16/8;
@@ -171,17 +181,34 @@ export default function ArticleDetailPage() {
           overflow: hidden;
           background: #f5f5f5;
         }
-        @media (max-width: 640px) {
-          .vp-hero-img { aspect-ratio: 4/3; max-height: 320px; }
+
+        /* Desktop image: visible by default, hidden on mobile */
+        .vp-hero-desktop {
+          display: block;
+        }
+        .vp-hero-mobile {
+          display: none;
         }
 
-        /* ── Article header — title + trust bar BELOW image ── */
+        @media (max-width: 640px) {
+          .vp-hero-img {
+            aspect-ratio: 3/4;
+            max-height: 480px;
+          }
+          .vp-hero-desktop {
+            display: none;
+          }
+          .vp-hero-mobile {
+            display: block;
+          }
+        }
+
+        /* ── Article header ── */
         .vp-header {
           max-width: 1280px; margin: 0 auto;
           padding: clamp(2rem, 4vw, 3.5rem) clamp(1rem, 5vw, 3rem) 0;
         }
 
-        /* Brand line above title */
         .vp-brand-line {
           display: flex; align-items: center; gap: 10px;
           margin-bottom: 1.1rem;
@@ -198,7 +225,6 @@ export default function ArticleDetailPage() {
           color: #67a139;
         }
 
-        /* Article title — Playfair Display */
         .vp-title {
           font-family: poppins;
           font-size: clamp(1.6rem, 4.5vw, 3.2rem);
@@ -210,7 +236,7 @@ export default function ArticleDetailPage() {
           margin: 0 0 2rem;
         }
 
-        /* ── Trust bar — the hero signal strip ── */
+        /* ── Trust bar ── */
         .vp-trust-bar {
           display: flex; flex-wrap: wrap;
           align-items: stretch;
@@ -246,7 +272,6 @@ export default function ArticleDetailPage() {
         }
         .vp-trust-value svg { color: #67a139; flex-shrink: 0; }
 
-        /* Category pill inside trust bar */
         .vp-cat-pill {
           display: inline-block;
           font-family: 'Inter', sans-serif;
@@ -259,7 +284,6 @@ export default function ArticleDetailPage() {
           border: 1px solid #c6e8b0;
         }
 
-        /* ── Verified badge in trust bar ── */
         .vp-verified {
           display: flex; align-items: center; gap: 5px;
           font-family: 'Inter', sans-serif;
@@ -267,7 +291,7 @@ export default function ArticleDetailPage() {
           color: #67a139;
         }
 
-        /* ── Body layout — reading column + sticky sidebar ── */
+        /* ── Body layout ── */
         .vp-body-wrap {
           max-width: 1280px; margin: 0 auto;
           display: grid;
@@ -281,7 +305,7 @@ export default function ArticleDetailPage() {
           .vp-sidebar { order: -1; }
         }
 
-        /* ── Article prose ── */
+        /* ── Prose ── */
         .vp-prose {
           font-family: 'Inter', sans-serif;
           font-size: clamp(0.93rem, 1.8vw, 1.05rem);
@@ -371,7 +395,6 @@ export default function ArticleDetailPage() {
           display: flex; flex-direction: column; gap: 1.25rem;
         }
 
-        /* Expert card */
         .vp-expert-card {
           border: 1px solid #ececec;
           border-radius: 12px;
@@ -416,7 +439,6 @@ export default function ArticleDetailPage() {
         }
         .vp-expert-cta:hover { opacity: 0.88; }
 
-        /* Share card */
         .vp-share-card {
           border: 1px solid #ececec; border-radius: 12px;
           padding: 1.1rem 1.4rem;
@@ -530,20 +552,28 @@ export default function ArticleDetailPage() {
         }
       `}</style>
 
-     
-     
-    <main style={{ minHeight: "100vh", background: "#fff" }}>
+      <main style={{ minHeight: "100vh", background: "#fff" }}>
 
         {/* ══════════════════════════════
-            HERO IMAGE — clean, no overlay
+            HERO IMAGE — desktop + mobile
         ══════════════════════════════ */}
-        {(article.image || article.banner) && (
+        {(article.image || article.banner || currentBanner) && (
           <div className="vp-hero-img">
+            {/* Desktop banner */}
             <Image
-              src={bannerSrc}
+              src={desktopSrc}
               alt={article.title}
               fill
-              className="object-cover object-center"
+              className="object-cover object-center vp-hero-desktop"
+              sizes="100vw"
+              priority
+            />
+            {/* Mobile banner */}
+            <Image
+              src={mobileSrc}
+              alt={article.title}
+              fill
+              className="object-cover object-center vp-hero-mobile"
               sizes="100vw"
               priority
             />
@@ -551,21 +581,18 @@ export default function ArticleDetailPage() {
         )}
 
         {/* ══════════════════════════════
-            ARTICLE HEADER (below image)
+            ARTICLE HEADER
         ══════════════════════════════ */}
         <div className="vp-header">
-          {/* Green rule + brand label */}
           <div className="vp-brand-line">
             <div className="vp-brand-rule" />
             <span className="vp-brand-label">Vishwak Properties · Expert Insight</span>
           </div>
-
-          {/* Title in Playfair */}
           <h1 className="vp-title">{article.title}</h1>
         </div>
 
         {/* ══════════════════════════════
-            TRUST BAR — key differentiator
+            TRUST BAR
         ══════════════════════════════ */}
         <div className="vp-trust-bar">
           {article.category && (
@@ -609,7 +636,7 @@ export default function ArticleDetailPage() {
         ══════════════════════════════ */}
         <div className="vp-body-wrap">
 
-          {/* ── Prose ── */}
+          {/* Prose */}
           <article>
             {article.content ? (
               <div className="vp-prose" dangerouslySetInnerHTML={{ __html: article.content }} />
@@ -620,10 +647,9 @@ export default function ArticleDetailPage() {
             )}
           </article>
 
-          {/* ── Sidebar ── */}
+          {/* Sidebar */}
           <aside className="vp-sidebar">
 
-            {/* Expert CTA card */}
             <div className="vp-expert-card">
               <div className="vp-expert-card-head">
                 <p className="vp-expert-eyebrow">Vishwak Properties</p>
@@ -642,11 +668,9 @@ export default function ArticleDetailPage() {
                   <CheckCircle size={14} />
                   <span>Dedicated advisor from search to handover</span>
                 </div>
-                
               </div>
             </div>
 
-            {/* Share card */}
             <div className="vp-share-card">
               <p className="vp-share-card-label">Share this article</p>
               <button
