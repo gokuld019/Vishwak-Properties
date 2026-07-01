@@ -158,8 +158,8 @@ export default function HeroSection() {
   const hasProjects =
     Array.isArray(recentProjects) && recentProjects.length > 0;
 
-  const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_RAW_URL}/`;
 
   const [formData, setFormData] = useState({
     name: "",

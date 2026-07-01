@@ -14,8 +14,8 @@ export default function ArticleDetailPage() {
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_URL}/`;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const IMAGE_BASE = `${process.env.NEXT_PUBLIC_API_RAW_URL}/`;
 
   const getImageUrl = (path) => {
     if (!path) return "";

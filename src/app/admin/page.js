@@ -51,9 +51,9 @@ import {
   LocateFixed,
 } from "lucide-react";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const API = process.env.NEXT_PUBLIC_API_URL;
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /* =========================
    MODERN UI COMPONENTS

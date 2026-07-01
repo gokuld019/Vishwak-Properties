@@ -16,7 +16,7 @@ const navigationLinks = [
   { name: "CONTACT US", href: "/contactus", type: "link" },
 ];
 
-const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Header() {
   const pathname = usePathname();

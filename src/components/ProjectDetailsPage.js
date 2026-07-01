@@ -114,8 +114,8 @@ export default function ProjectDetailsPage({ projectId }) {
 const [zoomSrc, setZoomSrc] = useState("");
 const [zoomScale, setZoomScale] = useState(1);
 const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
-  const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-  const Imagebase = `${process.env.NEXT_PUBLIC_API_URL}`;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const Imagebase = process.env.NEXT_PUBLIC_API_RAW_URL;
 
 
 
