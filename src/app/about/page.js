@@ -136,7 +136,7 @@ export default function AboutPage() {
       {/* ── TEAM ── */}
       <section className="max-w-6xl mx-auto px-5 xs:px-6 sm:px-10 md:px-14 lg:px-20 py-12 xs:py-16 sm:py-20">
         <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-12">
-          Meet Our <span className="text-[#3b7b3f]">Team</span>
+          Meet Our <span className="text-[#3b7b3f]">Founder</span>
         </h2>
 
         <div className="">
