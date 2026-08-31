@@ -57,6 +57,7 @@ export default function HeroSection() {
   const [webBanners, setWebBanners] = useState([]);
   const [mobileBanners, setMobileBanners] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [bannerLoading, setBannerLoading] = useState(true);
 
   const [projectsData, setProjectsData] = useState({
     apartments: [],
@@ -691,128 +692,124 @@ export default function HeroSection() {
       )}
 
       {/* Hero Section - Mobile Responsive */}
-
       <section>
         <div className="relative w-full h-auto sm:h-auto md:h-auto lg:h-auto">
+          {/* scroll animation */}
+          <div className="top-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white z-20 shadow-lg overflow-hidden transition-all duration-500">
+            <div
+              className={`transition-all duration-500 ${isScrolled ? "h-0 opacity-0" : "h-8 sm:h-[36px] md:h-[44px] opacity-100"}`}
+            >
+              <div className="flex items-center h-full overflow-hidden">
+                <div className="animate-marquee whitespace-nowrap flex items-center gap-4 sm:gap-6 md:gap-10 px-3 sm:px-4">
+                  {/* EXCLUSIVE */}
+                  <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
+                    <Diamond className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                    <span className="text-blue-400 hidden xs:inline">
+                      EXCLUSIVE:
+                    </span>
+                    <span className="xs:hidden">EXCL:</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      Villa Plots Vandalur | ₹36 Lakhs | CMDA Approved
+                    </span>
+                    <span className="sm:hidden"> Villa Plots ₹36L</span>
+                  </span>
 
-{/* scroll animation */}
-  <div className="  top-0 left-0 right-0 bg-gradient-to-r from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white z-20 shadow-lg overflow-hidden transition-all duration-500">
-          <div
-            className={`transition-all duration-500 ${isScrolled ? "h-0 opacity-0" : "h-8 sm:h-[36px] md:h-[44px] opacity-100"}`}
-          >
-            <div className="flex items-center h-full overflow-hidden">
-              <div className="animate-marquee whitespace-nowrap flex items-center gap-4 sm:gap-6 md:gap-10 px-3 sm:px-4">
-                {/* EXCLUSIVE */}
-                <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
-                  <Diamond className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
-                  <span className="text-blue-400 hidden xs:inline">
-                    EXCLUSIVE:
-                  </span>
-                  <span className="xs:hidden">EXCL:</span>
-                  <span className="hidden sm:inline">
-                    {" "}
-                    Villa Plots Vandalur | ₹36 Lakhs | CMDA Approved
-                  </span>
-                  <span className="sm:hidden"> Villa Plots ₹36L</span>
-                </span>
+                  <span className="text-gray-400 hidden sm:block">•</span>
 
-                <span className="text-gray-400 hidden sm:block">•</span>
+                  {/* NEW */}
+                  <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
+                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
+                    <span className="text-yellow-400 hidden xs:inline">NEW:</span>
+                    <span className="xs:hidden">NEW:</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      Gated Community | 291 Plots | Ready to Construct
+                    </span>
+                    <span className="sm:hidden"> 291 Plots</span>
+                  </span>
 
-                {/* NEW */}
-                <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
-                  <span className="text-yellow-400 hidden xs:inline">NEW:</span>
-                  <span className="xs:hidden">NEW:</span>
-                  <span className="hidden sm:inline">
-                    {" "}
-                    Gated Community | 291 Plots | Ready to Construct
-                  </span>
-                  <span className="sm:hidden"> 291 Plots</span>
-                </span>
+                  <span className="text-gray-400 hidden sm:block">•</span>
 
-                <span className="text-gray-400 hidden sm:block">•</span>
-
-                {/* OFFER */}
-                {/* <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
-                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
-                  <span className="text-green-400 hidden xs:inline">
-                    OFFER:
+                  {/* Duplicate for seamless marquee */}
+                  <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
+                    <Diamond className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                    <span className="text-blue-400 hidden xs:inline">
+                      EXCLUSIVE:
+                    </span>
+                    <span className="xs:hidden">EXCL:</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      Villa Plots Vandalur | ₹36 Lakhs | CMDA Approved
+                    </span>
+                    <span className="sm:hidden"> Villa Plots ₹36L</span>
                   </span>
-                  <span className="xs:hidden">OFF:</span>
-                  <span className="hidden sm:inline">
-                    {" "}
-                    Book Now & Get Free Registration | Limited Period
-                  </span>
-                  <span className="sm:hidden"> Free Registration</span>
-                </span> */}
-
-                {/* Duplicate for seamless marquee */}
-                <span className="inline-flex items-center gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm font-medium">
-                  <Diamond className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
-                  <span className="text-blue-400 hidden xs:inline">
-                    EXCLUSIVE:
-                  </span>
-                  <span className="xs:hidden">EXCL:</span>
-                  <span className="hidden sm:inline">
-                    {" "}
-                    Villa Plots Vandalur | ₹36 Lakhs | CMDA Approved
-                  </span>
-                  <span className="sm:hidden"> Villa Plots ₹36L</span>
-                </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className={`transition-all duration-500 ${isScrolled ? "h-8 sm:h-[36px] md:h-[44px] opacity-100" : "h-0 opacity-0"}`}
+            >
+              <div className="flex justify-between items-center h-full px-3 sm:px-4 md:px-6 text-[10px] xs:text-xs sm:text-sm">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#67a139]" />
+                  <a
+                    href="mailto:vishwakproperties@gmail.com"
+                    className="hover:text-[#67a139] transition-colors truncate max-w-[120px] xs:max-w-[140px] sm:max-w-none"
+                  >
+                    vishwakproperties@gmail.com
+                  </a>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#67a139]" />
+                  <a
+                    href="tel:+919345566568"
+                    className="hover:text-[#67a139] transition-colors"
+                  >
+                    +91 93455 66568
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-          <div
-            className={`transition-all duration-500 ${isScrolled ? "h-8 sm:h-[36px] md:h-[44px] opacity-100" : "h-0 opacity-0"}`}
-          >
-            <div className="flex justify-between items-center h-full px-3 sm:px-4 md:px-6 text-[10px] xs:text-xs sm:text-sm">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#67a139]" />
-                <a
-                  href="mailto:vishwakproperties@gmail.com"
-                  className="hover:text-[#67a139] transition-colors truncate max-w-[120px] xs:max-w-[140px] sm:max-w-none"
-                >
-                  vishwakproperties@gmail.com
-                </a>
+
+          {/* banner div - UPDATED: Shows banner immediately with placeholder */}
+          <div className="w-full relative">
+            {bannerLoading && activeBanners.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 z-10">
+                <div className="animate-pulse text-gray-500">Loading banner...</div>
               </div>
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#67a139]" />
-                <a
-                  href="tel:+919345566568"
-                  className="hover:text-[#67a139] transition-colors"
-                >
-                  +91 93455 66568
-                </a>
+            )}
+            {activeBanners.length > 0 ? (
+              <Image
+                priority
+                src={getImageUrl(activeBanners[safeSlideIndex]?.image)}
+                alt="Banner"
+                width={1920}
+                height={1080}
+                className="w-full h-auto object-contain transition-all duration-700"
+                onLoadingComplete={() => setBannerLoading(false)}
+                onError={() => setBannerLoading(false)}
+              />
+            ) : (
+              <div className="w-full relative">
+                <Image
+                  priority
+                  src="/placeholder-banner.jpg"
+                  alt="Loading banner"
+                  width={1920}
+                  height={1080}
+                  className="w-full h-auto object-contain"
+                  onError={() => setBannerLoading(false)}
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200/50">
+                  <div className="animate-pulse text-gray-500">Loading...</div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
-
-
-      {/* banner div */}
-<div className="w-full">
-  {activeBanners.length > 0 ? (
-    <Image
-      priority
-      src={getImageUrl(activeBanners[safeSlideIndex]?.image)}
-      alt="Banner"
-      width={1920}
-      height={1080}
-      className="w-full h-auto object-contain transition-all duration-700"
-    />
-  ) : (
-    <div className="w-full h-[300px] bg-gray-200 animate-pulse" />
-  )}
-</div>
-
-
-
-      
-
-      </div>
       </section>
-
-
 
       {/* About Us Section - Mobile Responsive */}
       <section className="relative w-full min-h-[500px] sm:h-[750px] md:h-[780px] lg:h-[800px] xl:h-[820px] overflow-hidden bg-[#e8e8d0]">
@@ -1008,89 +1005,89 @@ export default function HeroSection() {
         </div>
       </div>
 
-{/* Articles Section - Mobile Responsive */}
-<div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
-  <div className="max-w-[1350px] mx-auto">
-    <div className="flex flex-col md:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
-      <div>
-        <div className="inline-flex items-center gap-2 border-2 border-gray-300 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4">
-          <span className="text-xs sm:text-sm font-medium text-[#67a139]">
-            ARTICLES
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-          Discover inspiration and trends
-        </h2>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
-      {articles.map((article, index) => (
-        <Link
-          key={article.id || index}
-          href={`/article/${article.id}`}
-        >
-          <article className="group cursor-pointer">
-            <div className="relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden mb-3 sm:mb-4 h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72">
-              <img
-                src={getImageUrl(article.image)}
-                alt={article.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              {article.isMap && (
-                <div className="absolute inset-0 bg-cyan-400/90 flex items-center justify-center">
-                  <div className="relative w-full h-full p-4 sm:p-5 md:p-6 lg:p-8">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="absolute top-3 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                      Sriperumbudur
-                    </div>
-                    <div className="absolute top-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                      Tambaram
-                    </div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-4 sm:translate-y-6 md:translate-y-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                      Padappai
-                    </div>
-                    <div className="absolute bottom-1/4 left-2 sm:left-3 md:left-4 lg:left-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                      Oragadam
-                    </div>
-                    <div className="absolute bottom-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
-                      Kilambakkam
-                    </div>
-                    <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 100">
-                      <line x1="0" y1="33" x2="100" y2="33" stroke="white" strokeWidth="0.5" />
-                      <line x1="0" y1="66" x2="100" y2="66" stroke="white" strokeWidth="0.5" />
-                      <line x1="33" y1="0" x2="33" y2="100" stroke="white" strokeWidth="0.5" />
-                      <line x1="66" y1="0" x2="66" y2="100" stroke="white" strokeWidth="0.5" />
-                    </svg>
-                  </div>
-                </div>
-              )}
+      {/* Articles Section - Mobile Responsive */}
+      <div className="bg-white py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 px-4 sm:px-6 lg:px-8 xl:px-20">
+        <div className="max-w-[1350px] mx-auto">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
+            <div>
+              <div className="inline-flex items-center gap-2 border-2 border-gray-300 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4">
+                <span className="text-xs sm:text-sm font-medium text-[#67a139]">
+                  ARTICLES
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                Discover inspiration and trends
+              </h2>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 md:mb-3">
-              {article.date
-                ? new Date(article.date).toLocaleDateString("en-IN")
-                : ""}
-            </p>
-            <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
-              {article.title}
-            </h3>
-          </article>
-        </Link>
-      ))}
-      {articles.length === 0 && (
-        <div className="col-span-full text-center text-gray-500 py-8 sm:py-12">
-          No articles available.
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-10">
+            {articles.map((article, index) => (
+              <Link
+                key={article.id || index}
+                href={`/article/${article.id}`}
+              >
+                <article className="group cursor-pointer">
+                  <div className="relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden mb-3 sm:mb-4 h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72">
+                    <img
+                      src={getImageUrl(article.image)}
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    {article.isMap && (
+                      <div className="absolute inset-0 bg-cyan-400/90 flex items-center justify-center">
+                        <div className="relative w-full h-full p-4 sm:p-5 md:p-6 lg:p-8">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
+                              </svg>
+                            </div>
+                          </div>
+                          <div className="absolute top-3 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                            Sriperumbudur
+                          </div>
+                          <div className="absolute top-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                            Tambaram
+                          </div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-4 sm:translate-y-6 md:translate-y-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                            Padappai
+                          </div>
+                          <div className="absolute bottom-1/4 left-2 sm:left-3 md:left-4 lg:left-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                            Oragadam
+                          </div>
+                          <div className="absolute bottom-1/4 right-2 sm:right-3 md:right-4 lg:right-8 bg-white px-2 py-1 rounded-full text-[8px] sm:text-[10px] md:text-xs font-semibold shadow">
+                            Kilambakkam
+                          </div>
+                          <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 100">
+                            <line x1="0" y1="33" x2="100" y2="33" stroke="white" strokeWidth="0.5" />
+                            <line x1="0" y1="66" x2="100" y2="66" stroke="white" strokeWidth="0.5" />
+                            <line x1="33" y1="0" x2="33" y2="100" stroke="white" strokeWidth="0.5" />
+                            <line x1="66" y1="0" x2="66" y2="100" stroke="white" strokeWidth="0.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 md:mb-3">
+                    {article.date
+                      ? new Date(article.date).toLocaleDateString("en-IN")
+                      : ""}
+                  </p>
+                  <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
+                    {article.title}
+                  </h3>
+                </article>
+              </Link>
+            ))}
+            {articles.length === 0 && (
+              <div className="col-span-full text-center text-gray-500 py-8 sm:py-12">
+                No articles available.
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  </div>
-</div>
+      </div>
 
       {/* Testimonials Section */}
       <div className="relative bg-gradient-to-b from-blue-50 to-white py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden">
